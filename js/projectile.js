@@ -14,6 +14,14 @@ export class Projectile {
         this.shouldBeRemoved = false;
         this.damage = 25;
         this.collisionRadius = 0.3;
+        
+        // Debug logging for projectile creation
+        console.log(`PROJECTILE CREATED:`, {
+            startPos: `(${startPosition.x.toFixed(2)}, ${startPosition.y.toFixed(2)}, ${startPosition.z.toFixed(2)})`,
+            velocity: `(${initialVelocity.x.toFixed(1)}, ${initialVelocity.y.toFixed(1)}, ${initialVelocity.z.toFixed(1)})`,
+            speed: `${initialVelocity.length().toFixed(1)} m/s`,
+            firedByPlayer: firedByPlayer
+        });
     }
     update(deltaTime) {
         if (this.shouldBeRemoved) return;

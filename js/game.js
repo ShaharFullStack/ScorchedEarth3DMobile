@@ -795,13 +795,23 @@ export class Game {
         
         // Check tank collisions
         for (const tank of targets) {
-            if (tank.isDestroyed) continue;
-
-            const distance = projectile.mesh.position.distanceTo(tank.mesh.position);
+            if (tank.isDestroyed) continue;            const distance = projectile.mesh.position.distanceTo(tank.mesh.position);
             if (distance < tank.collisionRadius + projectile.collisionRadius) {
                 // Create spectacular tank hit effect
                 const hitPosition = projectile.mesh.position.clone();
                 hitPosition.y = tank.mesh.position.y + 0.8; // Adjust height to tank center
+                
+                // Log impact details
+                const shooterName = projectile.shootingTank ? (projectile.shootingTank.isPlayer ? 'PLAYER' : projectile.shootingTank.id) : 'UNKNOWN';
+                const targetName = tank.isPlayer ? 'PLAYER' : tank.id;
+                console.log(`${shooterName} HIT ${targetName}:`, {
+                    impactPosition: `(${hitPosition.x.toFixed(2)}, ${hitPosition.y.toFixed(2)}, ${hitPosition.z.toFixed(2)})`,
+                    targetPosition: `(${tank.mesh.position.x.toFixed(2)}, ${tank.mesh.position.y.toFixed(2)}, ${tank.mesh.position.z.toFixed(2)})`,
+                    distance: `${distance.toFixed(2)} units`,
+                    damage: `${projectile.damage} HP`,
+                    targetHealthBefore: `${tank.currentHealth} HP`,
+                    targetHealthAfter: `${Math.max(0, tank.currentHealth - projectile.damage)} HP`
+                });
                 
                 // Determine hit intensity based on damage and tank health
                 const healthPercentage = tank.currentHealth / tank.maxHealth;
@@ -835,11 +845,21 @@ export class Game {
         // Check building collisions
         for (const building of this.buildings) {
             if (building.userData.isDestroyed) continue;
-            
-            const distance = projectile.mesh.position.distanceTo(building.position);
+              const distance = projectile.mesh.position.distanceTo(building.position);
             if (distance < building.userData.collisionRadius + projectile.collisionRadius) {
                 // Building hit effects
                 const hitPosition = projectile.mesh.position.clone();
+                
+                // Log building impact
+                const shooterName = projectile.shootingTank ? (projectile.shootingTank.isPlayer ? 'PLAYER' : projectile.shootingTank.id) : 'UNKNOWN';
+                console.log(`${shooterName} HIT BUILDING:`, {
+                    impactPosition: `(${hitPosition.x.toFixed(2)}, ${hitPosition.y.toFixed(2)}, ${hitPosition.z.toFixed(2)})`,
+                    buildingPosition: `(${building.position.x.toFixed(2)}, ${building.position.y.toFixed(2)}, ${building.position.z.toFixed(2)})`,
+                    distance: `${distance.toFixed(2)} units`,
+                    damage: `${projectile.damage} HP`,
+                    buildingHealthBefore: `${building.userData.health} HP`
+                });
+                
                 this.particleSystem.createSmoke(hitPosition, 0.8);
                 this.particleSystem.createMetalDebris(hitPosition, 0.6);
                 
@@ -852,11 +872,19 @@ export class Game {
         // Check tree collisions
         for (const tree of this.trees) {
             if (tree.userData.isDestroyed) continue;
-            
-            const distance = projectile.mesh.position.distanceTo(tree.position);
+              const distance = projectile.mesh.position.distanceTo(tree.position);
             if (distance < tree.userData.collisionRadius + projectile.collisionRadius) {
                 // Tree hit effects (simpler)
                 const hitPosition = projectile.mesh.position.clone();
+                
+                // Log tree impact
+                const shooterName = projectile.shootingTank ? (projectile.shootingTank.isPlayer ? 'PLAYER' : projectile.shootingTank.id) : 'UNKNOWN';
+                console.log(`${shooterName} HIT TREE:`, {
+                    impactPosition: `(${hitPosition.x.toFixed(2)}, ${hitPosition.y.toFixed(2)}, ${hitPosition.z.toFixed(2)})`,
+                    treePosition: `(${tree.position.x.toFixed(2)}, ${tree.position.y.toFixed(2)}, ${tree.position.z.toFixed(2)})`,
+                    distance: `${distance.toFixed(2)} units`
+                });
+                
                 this.particleSystem.createSmoke(hitPosition, 0.3);
                 
                 this.destroyTree(tree, projectile);
@@ -868,8 +896,7 @@ export class Game {
         // Check collision with terrain
         const terrainHeightAtImpact = this.scene.userData.terrain.getHeightAt(
             projectile.mesh.position.x, 
-            projectile.mesh.position.z
-        );
+            projectile.mesh.position.z        );
         if (projectile.mesh.position.y <= terrainHeightAtImpact + projectile.collisionRadius) {
             projectile.shouldBeRemoved = true;
             const craterDepth = 1.5;
@@ -878,6 +905,20 @@ export class Game {
             // Ground impact effects
             const hitPosition = projectile.mesh.position.clone();
             hitPosition.y = terrainHeightAtImpact + 0.2;
+              // Log ground impact
+            const shooterName = projectile.shootingTank ? (projectile.shootingTank.isPlayer ? 'PLAYER' : projectile.shootingTank.id) : 'UNKNOWN';
+            const shooterPos = projectile.shootingTank ? projectile.shootingTank.mesh.position : new THREE.Vector3(0, 0, 0);
+            const actualRange = Math.sqrt(
+                Math.pow(hitPosition.x - shooterPos.x, 2) + 
+                Math.pow(hitPosition.z - shooterPos.z, 2)
+            );
+            console.log(`${shooterName} HIT GROUND:`, {
+                impactPosition: `(${hitPosition.x.toFixed(2)}, ${hitPosition.y.toFixed(2)}, ${hitPosition.z.toFixed(2)})`,
+                shooterPosition: `(${shooterPos.x.toFixed(2)}, ${shooterPos.y.toFixed(2)}, ${shooterPos.z.toFixed(2)})`,
+                actualRange: `${actualRange.toFixed(1)} units`,
+                terrainHeight: `${terrainHeightAtImpact.toFixed(2)}`,
+                craterDepth: `${craterDepth.toFixed(1)}`
+            });
             
             // Create ground impact particles
             this.particleSystem.createSmoke(hitPosition, 0.5);

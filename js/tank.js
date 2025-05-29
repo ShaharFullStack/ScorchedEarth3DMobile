@@ -40,7 +40,7 @@ export class Tank {
         this.maxProjectileSpeed = 40; // m/s at maxPower
         
         // Barrel elevation - Fixed ranges for proper aiming
-        this.barrelElevation = 0; // Radians
+        this.barrelElevation = Math.PI / 36; // Approx 5 degrees (slightly up) - CHANGED from 0
         this.minBarrelElevation = -Math.PI / 12; // Approx -15 degrees (slightly down)
         this.maxBarrelElevation = Math.PI / 3;   // Approx 60 degrees (up) - increased for better range
         this.barrelElevateSpeed = Math.PI / 6; // Faster elevation adjustment
@@ -83,9 +83,7 @@ export class Tank {
         const turretMesh = new THREE.Mesh(turretGeo, turretMat);
         turretMesh.position.y = 0.5 + 0.4; // On top of body
         turretMesh.castShadow = true;
-        this.turret.add(turretMesh);
-
-        // Barrel - Fixed geometry and positioning
+        this.turret.add(turretMesh);        // Barrel - FIXED geometry and positioning
         const barrelGeo = new THREE.CylinderGeometry(0.15, 0.2, 2, 8); // Longer barrel, tapered
         const barrelMat = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.7, roughness: 0.3 });
         this.barrel = new THREE.Mesh(barrelGeo, barrelMat);
@@ -93,19 +91,21 @@ export class Tank {
         // Create a pivot group for proper barrel rotation
         this.barrelPivot = new THREE.Group();
         
-        // Position the barrel correctly - the pivot point should be at the turret
+        // CRITICAL FIX: Position the barrel correctly - the pivot point should be at the turret
         this.barrel.position.set(0, 0, 1); // Move barrel forward from pivot
-        this.barrel.rotation.x = -Math.PI / 2; // Rotate to point forward along Z-axis
-        
-        // Set initial elevation
-        this.barrelPivot.rotation.x = this.barrelElevation;
-        
-        // Add barrel to pivot, pivot to turret
+        // FIXED: Use -Math.PI/2 so that elevation angles work correctly (barrel points in -Y when elevation = 0)
+        this.barrel.rotation.x = -Math.PI / 2; // Rotate to point forward along Z-axis with correct elevation behavior
+          // Add barrel to pivot, pivot to turret
         this.barrelPivot.add(this.barrel);
         turretMesh.add(this.barrelPivot);
         
         // Store reference to pivot for elevation control
         this.barrelPivotRef = this.barrelPivot;
+        
+        // Apply the initial barrel elevation that was set in constructor
+        if (this.barrelPivotRef) {
+            this.barrelPivotRef.rotation.x = this.barrelElevation;
+        }
         
         this.mesh.add(this.turret);
         
@@ -324,23 +324,29 @@ export class Tank {
             this.nameLabel.material.opacity = opacity;
         }
     }
-    
+      // FIXED elevateBarrel method with debug logging
     elevateBarrel(angleChange) {
         if (this.isDestroyed) return;
         this.barrelElevation += angleChange;
         this.barrelElevation = Math.max(this.minBarrelElevation, Math.min(this.maxBarrelElevation, this.barrelElevation));
         
-        // Apply elevation to the barrel pivot instead of the barrel directly
+        // Apply elevation to the barrel pivot - positive elevation raises barrel up
         if (this.barrelPivotRef) {
             this.barrelPivotRef.rotation.x = this.barrelElevation;
+        }
+        
+        // Debug logging to verify elevation is being applied correctly
+        if (!this.isPlayer) {
+            console.log(`AI ${this.id} barrel elevation: ${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`);
         }
     }
     
     move(direction, deltaTime) {
         if (this.isDestroyed || this.currentFuel <= 0) return;
 
-        const fuelCost = FUEL_PER_MOVE_ACTION * deltaTime * 5; // Scale cost with movement
-        if (this.currentFuel < fuelCost) return; // Not enough fuel for this bit of movement
+        // Reduced fuel cost for better movement
+        const fuelCost = FUEL_PER_MOVE_ACTION * deltaTime * 2; // Reduced from 5 to 2
+        if (this.currentFuel < fuelCost) return;
 
         const moveDistance = this.moveSpeed * deltaTime;
         
@@ -348,8 +354,8 @@ export class Tank {
         const moveVector = direction.clone().multiplyScalar(moveDistance);
         const newPosition = this.mesh.position.clone().add(moveVector);
         
-        // Basic boundary check for larger map (assuming a playable area of -40 to 40 in X and Z)
-        if (newPosition.x < -39.5 || newPosition.x > 39.5 || newPosition.z < -39.5 || newPosition.z > 39.5) {
+        // Increased boundary check for larger map
+        if (newPosition.x < -70 || newPosition.x > 70 || newPosition.z < -70 || newPosition.z > 70) {
             return; // Hit boundary
         }
 
@@ -368,12 +374,12 @@ export class Tank {
             }
         }
         
-        // Check collision with trees (using sphere collision for simplicity and performance)
+        // Check collision with trees
         const newTankCenter = newPosition.clone();
         newTankCenter.y += 0.5; // Adjust for tank center height
         
         for (const tree of this.game.trees) {
-            if (tree.userData.isDestroyed) continue; // Skip destroyed trees
+            if (tree.userData.isDestroyed) continue;
             
             const treeCenter = tree.position.clone();
             treeCenter.y += 2; // Adjust for tree center height
@@ -386,17 +392,23 @@ export class Tank {
             }
         }
         
-        // Apply the movement using the moveVector we calculated earlier
+        // Apply the movement
         this.mesh.position.add(moveVector);
         
-        // Update Y position based on new terrain height
+        // Update Y position based on terrain height
         if (this.scene.userData.terrain) {
-            this.mesh.position.y = this.scene.userData.terrain.getHeightAt(this.mesh.position.x, this.mesh.position.z) + 0.5; // 0.5 is tank half-height
+            this.mesh.position.y = this.scene.userData.terrain.getHeightAt(this.mesh.position.x, this.mesh.position.z) + 0.5;
         }
         
+        // Reduce fuel consumption
         this.currentFuel -= fuelCost;
         if (this.currentFuel < 0) this.currentFuel = 0;
         if (this.isPlayer) this.game.ui.updateFuel(this.currentFuel, this.maxFuel);
+        
+        // Debug logging for movement
+        if (this.isPlayer) {
+            console.log(`Player moved: ${moveVector.length().toFixed(2)} units, fuel: ${this.currentFuel.toFixed(1)}`);
+        }
     }
 
     rotateBody(angle) {
@@ -435,26 +447,22 @@ export class Tank {
         
         // Set turret rotation directly to face target
         this.turret.rotation.y = angleToTarget;
-    }
-    
-    shoot() {
+    }    shoot() {
         if (this.isDestroyed || this.hasFiredThisTurn) return;
 
         // Get the world position of the barrel tip
-        const barrelTip = new THREE.Vector3(0, 0, 1); // Local position at barrel tip (barrel extends in +Z direction)
-        this.barrel.localToWorld(barrelTip);
-
-        // Calculate the shooting direction properly
-        // Start with forward direction (the barrel naturally points in +Z after rotation)
+        const barrelTip = new THREE.Vector3(0, 0.9, 1); // Local position at barrel tip (barrel extends in +Z direction)
+        this.barrel.localToWorld(barrelTip);        // FIXED: Calculate direction using proper barrel pivot rotation
+        // Start with forward direction (Z-axis)
         const localDirection = new THREE.Vector3(0, 0, 1);
         
-        // Apply barrel elevation (around X-axis)
-        localDirection.applyAxisAngle(new THREE.Vector3(1, 0, 0), this.barrelElevation);
+        // Apply barrel elevation first (CRITICAL FIX: negate the elevation due to barrel's -Math.PI/2 rotation)
+        localDirection.applyAxisAngle(new THREE.Vector3(1, 0, 0), -this.barrelElevation);
         
-        // Apply turret rotation (around Y-axis) 
+        // Then apply turret rotation (Y-axis)
         localDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.turret.rotation.y);
         
-        // Apply tank body rotation (around Y-axis)
+        // Finally apply tank body rotation (Y-axis)
         localDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.mesh.rotation.y);
         
         // Normalize the direction
@@ -465,12 +473,40 @@ export class Tank {
         const initialSpeed = this.minProjectileSpeed + powerRatio * (this.maxProjectileSpeed - this.minProjectileSpeed);
         const initialVelocity = localDirection.clone().multiplyScalar(initialSpeed);
         
+        // Log shooting position and details
+        const tankPosition = this.mesh.position.clone();
+        const tankName = this.isPlayer ? 'PLAYER' : this.id;
+        
+        // Calculate theoretical range for this shot
+        const g = 9.81 * 2; // Same gravity as projectile
+        const v0 = initialSpeed;
+        const angle = this.barrelElevation;
+        const theoreticalRange = (v0 * v0 * Math.sin(2 * angle)) / g;
+        const maxHeight = (v0 * v0 * Math.sin(angle) * Math.sin(angle)) / (2 * g);
+        const timeOfFlight = (2 * v0 * Math.sin(angle)) / g;
+          console.log(`${tankName} SHOOTING:`, {
+            tankPosition: `(${tankPosition.x.toFixed(2)}, ${tankPosition.y.toFixed(2)}, ${tankPosition.z.toFixed(2)})`,
+            barrelTip: `(${barrelTip.x.toFixed(2)}, ${barrelTip.y.toFixed(2)}, ${barrelTip.z.toFixed(2)})`,
+            power: `${this.currentPower}%`,
+            elevation: `${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`,
+            turretRotation: `${(this.turret.rotation.y * 180 / Math.PI).toFixed(1)}°`,
+            tankRotation: `${(this.mesh.rotation.y * 180 / Math.PI).toFixed(1)}°`,
+            direction: `(${localDirection.x.toFixed(3)}, ${localDirection.y.toFixed(3)}, ${localDirection.z.toFixed(3)})`,
+            velocity: `(${initialVelocity.x.toFixed(1)}, ${initialVelocity.y.toFixed(1)}, ${initialVelocity.z.toFixed(1)})`,
+            initialSpeed: `${initialSpeed.toFixed(1)} m/s`,
+            theoreticalRange: `${theoreticalRange.toFixed(1)} units`,
+            maxHeight: `${maxHeight.toFixed(1)} units`,
+            timeOfFlight: `${timeOfFlight.toFixed(2)} seconds`
+        });
+        
         const projectile = new Projectile(
             barrelTip,
             initialVelocity,
             this.isPlayer,
             this.scene
         );
+        // Store reference to shooting tank for impact logging
+        projectile.shootingTank = this;
         this.game.addProjectile(projectile);
         this.hasFiredThisTurn = true;
         if (this.isPlayer) this.game.ui.updateActionIndicator("Aim / Move (Fired)");
@@ -553,13 +589,6 @@ export class Tank {
             }
         }, 50);
         console.log(`${this.id} destroyed!`);
-    }
-    
-    updateHealthBar(camera) {
-        // Update health in the UI
-        if (this.game && this.game.ui) {
-            this.game.ui.updateHealth(this.id, this.currentHealth, this.maxHealth);
-        }
     }
     
     resetTurnStats() {
