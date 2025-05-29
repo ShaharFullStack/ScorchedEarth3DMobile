@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turn-Based Tank Tactics</title>
     <link rel="stylesheet" href="css/styles.css">
     <script type="importmap">
@@ -16,8 +16,7 @@
     </script>
 </head>
 <body>
-    <!-- Desktop UI Container -->
-    <div id="ui-container" class="desktop-only">
+    <div id="ui-container">
         <p id="turn-indicator">Turn: Player</p>
         <p id="fuel-indicator">Fuel: 100/100</p>
         <p id="health-indicator">Player HP: 100/100</p>
@@ -25,9 +24,7 @@
         <p id="action-indicator">Actions: Move / Aim / Fire / Adjust Power</p>
         <button id="end-turn-button">End Turn</button>
     </div>
-
-    <!-- Desktop Controls Info -->
-    <div id="controls-info" class="desktop-only">
+    <div id="controls-info">
         <p>Controls:</p>
         <p>W/S: Move Tank Forward/Backward</p>
         <p>A/D: Rotate Tank Body</p>
@@ -37,71 +34,6 @@
         <p>Space: Fire</p>
         <p>H: Toggle Controls Info</p>
     </div>
-
-    <!-- Mobile UI Container -->
-    <div id="mobile-container" class="mobile-only">
-        <!-- Top info bar -->
-        <div class="mobile-top-bar">
-            <div class="mobile-info-left">
-                <div id="mobile-fuel">Fuel: 100/100</div>
-                <div id="mobile-health">Player HP: 100/100</div>
-            </div>
-            <div class="mobile-info-center">
-                <div id="mobile-turn">Your Turn</div>
-            </div>
-            <div class="mobile-info-right">
-                <div id="mobile-power-display">Power: 50%</div>
-                <div id="mobile-enemies">Enemies: 3</div>
-            </div>
-        </div>
-
-        <!-- Mobile bottom controls -->
-        <div class="mobile-bottom-controls">
-            <!-- Virtual joystick -->
-            <div class="virtual-joystick" id="virtual-joystick">
-                <div class="joystick-knob" id="joystick-knob"></div>
-                <div class="joystick-label">MOVE</div>
-            </div>
-
-            <!-- Power control -->
-            <div class="mobile-power-control">
-                <div class="power-label">POWER</div>
-                <div class="power-slider-container" id="power-slider-container">
-                    <div class="power-slider-track"></div>
-                    <div class="power-slider-thumb" id="power-slider-thumb"></div>
-                </div>
-                <div class="power-value" id="power-value">50%</div>
-            </div>
-
-            <!-- Fire button -->
-            <button class="mobile-fire-button" id="mobile-fire-btn">
-                <div class="fire-icon">🔥</div>
-                <div class="fire-text">FIRE</div>
-            </button>
-        </div>
-
-        <!-- Mobile aim overlay -->
-        <div class="mobile-aim-overlay" id="mobile-aim-overlay">
-            <svg class="trajectory-overlay" id="trajectory-svg">
-                <path class="trajectory-line" id="trajectory-path" d=""></path>
-                <circle class="trajectory-target" id="trajectory-target" cx="0" cy="0" r="8" style="display: none;"></circle>
-            </svg>
-            
-            <div class="aim-crosshair" id="aim-crosshair"></div>
-            
-            <div class="camera-hint" id="camera-hint">
-                📷 Two fingers: zoom camera
-            </div>
-        </div>
-
-        <!-- Mobile end turn button -->
-        <button class="mobile-end-turn-btn" id="mobile-end-turn">END TURN</button>
-
-        <!-- Mobile settings button -->
-        <button class="mobile-settings-btn" id="mobile-settings">⚙️</button>
-    </div>
-
-    <!-- Shared Message Overlay -->
     <div id="message-overlay">Game Over!</div>
 
     <script type="module" src="./js/main.js"></script>

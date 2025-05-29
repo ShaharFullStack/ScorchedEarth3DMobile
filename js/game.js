@@ -3,55 +3,53 @@ import { Tank } from './tank.js';
 import { Projectile } from './projectile.js';
 import { generateTrees, generateBuildings } from './sceneSetup.js';
 import { ParticleSystem } from './particleSystem.js';
-import { MobileControls } from './mobileControls.js';
 
 const PLAYER_ID = 'player';
 const ENEMY_ID_PREFIX = 'enemy_';
 
-// Difficulty configurations (adjusted for mobile)
+// Difficulty configurations
 const DIFFICULTY_SETTINGS = {
     beginner: {
         name: "New Player",
-        aiReactionTime: 2500, // Slower for mobile
-        aimAccuracy: 0.25,
-        strategicThinking: 0.15,
-        aggressiveness: 0.25,
-        fuelEfficiency: 0.5,
-        coverUsage: 0.2,
-        playerHealthBonus: 75,  // More generous for mobile
+        aiReactionTime: 2000,
+        aimAccuracy: 0.3,
+        strategicThinking: 0.2,
+        aggressiveness: 0.3,
+        fuelEfficiency: 0.6,
+        coverUsage: 0.3,
+        playerHealthBonus: 50,
         playerFuelBonus: 50
     },
     professional: {
         name: "Professional",
-        aiReactionTime: 1500,
-        aimAccuracy: 0.6,
-        strategicThinking: 0.5,
-        aggressiveness: 0.5,
-        fuelEfficiency: 0.7,
-        coverUsage: 0.6,
-        playerHealthBonus: 25,  // Some bonus for mobile
-        playerFuelBonus: 25
+        aiReactionTime: 1200,
+        aimAccuracy: 0.7,
+        strategicThinking: 0.6,
+        aggressiveness: 0.6,
+        fuelEfficiency: 0.8,
+        coverUsage: 0.7,
+        playerHealthBonus: 0,
+        playerFuelBonus: 0
     },
     veteran: {
         name: "Veteran",
-        aiReactionTime: 800,
-        aimAccuracy: 0.85,
-        strategicThinking: 0.8,
-        aggressiveness: 0.7,
-        fuelEfficiency: 0.9,
-        coverUsage: 0.8,
-        playerHealthBonus: 0,   // No bonus for veterans
-        playerFuelBonus: 0
+        aiReactionTime: 600,
+        aimAccuracy: 0.95,
+        strategicThinking: 0.9,
+        aggressiveness: 0.8,
+        fuelEfficiency: 0.95,
+        coverUsage: 0.9,
+        playerHealthBonus: -25,
+        playerFuelBonus: -25
     }
 };
 
 export class Game {
-    constructor(scene, camera, renderer, ui, isMobile = false) {
+    constructor(scene, camera, renderer, ui) {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
         this.ui = ui;
-        this.isMobile = isMobile;
 
         this.playerTank = null;
         this.enemyTanks = [];
@@ -62,79 +60,14 @@ export class Game {
         this.currentPlayerIndex = -1;
         this.activeTank = null;
         this.cameraController = null;
-        this.difficulty = 'professional';
+        this.difficulty = 'professional'; // Default difficulty
         this.difficultyConfig = DIFFICULTY_SETTINGS.professional;
 
         this.gameState = 'DIFFICULTY_SELECTION';
-        this.isPaused = false;
 
-        // Initialize particle system with mobile optimizations
-        this.particleSystem = new ParticleSystem(this.scene, this.isMobile);
+        // Initialize particle system
+        this.particleSystem = new ParticleSystem(this.scene);
 
-        // Mobile controls
-        if (this.isMobile) {
-            this.mobileControls = new MobileControls(this);
-            this.setupMobileControls();
-        } else {
-            this.setupDesktopControls();
-        }
-        
-        this.ui.endTurnButton.addEventListener('click', () => this.endPlayerTurn());
-        this.ui.onDifficultyChange = (difficulty) => this.setDifficulty(difficulty);
-        
-        if (!this.isMobile) {
-            this.setupControlsInfo();
-        }
-    }
-
-    setupMobileControls() {
-        // Mobile controls are handled by the MobileControls class
-        console.log('Setting up mobile controls');
-        
-        // Setup mobile-specific UI event handlers
-        this.setupMobileUIHandlers();
-        
-        // Enable mobile-specific features
-        this.enableMobileFeatures();
-    }
-
-    setupMobileUIHandlers() {
-        // Mobile end turn button
-        const mobileEndTurn = document.getElementById('mobile-end-turn');
-        if (mobileEndTurn) {
-            mobileEndTurn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.endPlayerTurn();
-                this.vibrate(30);
-            });
-        }
-
-        // Mobile settings button
-        const mobileSettings = document.getElementById('mobile-settings');
-        if (mobileSettings) {
-            mobileSettings.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.toggleMobileSettings();
-                this.vibrate(20);
-            });
-        }
-    }
-
-    enableMobileFeatures() {
-        // Enable haptic feedback
-        this.hapticEnabled = 'vibrate' in navigator;
-        
-        // Enable trajectory assistance for mobile
-        this.trajectoryAssistance = true;
-        
-        // Simplified turn mechanics for mobile
-        this.autoEndTurnAfterFiring = true;
-        
-        // More forgiving collision detection for mobile
-        this.mobileCollisionTolerance = 1.2;
-    }
-
-    setupDesktopControls() {
         this.inputStates = {
             moveForward: false,
             moveBackward: false,
@@ -150,6 +83,9 @@ export class Game {
         };
         
         this.setupInputListeners();
+        this.ui.endTurnButton.addEventListener('click', () => this.endPlayerTurn());
+        this.ui.onDifficultyChange = (difficulty) => this.setDifficulty(difficulty);
+        this.setupControlsInfo();
     }
 
     setCameraController(controller) {
@@ -176,21 +112,17 @@ export class Game {
         this.enemyTanks = [];
         this.projectiles = [];
 
-        // Mobile-optimized generation (fewer objects for better performance)
-        const buildingCount = this.isMobile ? 8 : 15;
-        const treeCount = this.isMobile ? 15 : 30;
-
         // Generate buildings first
-        this.buildings = generateBuildings(this.scene, [], buildingCount);
+        this.buildings = generateBuildings(this.scene, [], 15);
         
         // Generate trees after buildings
-        this.trees = generateTrees(this.scene, this.buildings, treeCount);
+        this.trees = generateTrees(this.scene, this.buildings, 30);
         
-        const terrainSize = this.scene.userData.terrain ? this.scene.userData.terrain.size : (this.isMobile ? 100 : 150);
-        const padding = this.isMobile ? 15 : 25;
-        const minTankDistance = this.isMobile ? 10 : 12;
-        const minTankBuildingDistance = this.isMobile ? 6 : 8;
-        const minTankTreeDistance = this.isMobile ? 4 : 6;
+        const terrainSize = this.scene.userData.terrain ? this.scene.userData.terrain.size : 150;
+        const padding = 25;
+        const minTankDistance = 12;
+        const minTankBuildingDistance = 8;
+        const minTankTreeDistance = 6;
         const occupiedPositions = [];
         
         const tankCollisionRadius = 1.5;
@@ -279,8 +211,8 @@ export class Game {
         
         this.scene.add(this.playerTank.mesh);
         
-        // Create enemy tanks (fewer for mobile)
-        const numEnemies = this.isMobile ? 2 : 3;
+        // Create enemy tanks
+        const numEnemies = 3;
         for (let i = 0; i < numEnemies; i++) {
             const enemyInitialPosition = getRandomPosition();
             const enemy = new Tank(ENEMY_ID_PREFIX + i, false, this.scene, enemyInitialPosition, 0xff0000, this);
@@ -288,17 +220,12 @@ export class Game {
             // Set AI difficulty properties
             enemy.aiDifficulty = this.difficultyConfig;
             enemy.lastKnownPlayerPosition = null;
-            enemy.strategicState = 'seeking';
+            enemy.strategicState = 'seeking'; // seeking, engaging, retreating, flanking
             enemy.coverPosition = null;
             enemy.turnsSinceLastShot = 0;
             
             this.enemyTanks.push(enemy);
             this.scene.add(enemy.mesh);
-        }
-
-        // Update mobile UI with enemy count
-        if (this.isMobile) {
-            this.ui.updateMobileEnemyCount(this.enemyTanks.length);
         }
     }
 
@@ -311,18 +238,9 @@ export class Game {
         this.ui.updateTurnIndicator(`${this.difficultyConfig.name} - ${playerName}'s Turn`);
         this.ui.updateFuel(this.activeTank.currentFuel, this.activeTank.maxFuel);
         this.ui.updateHealth(this.activeTank.id, this.activeTank.currentHealth, this.activeTank.maxHealth);
-        
-        if (!this.isMobile) {
-            this.ui.toggleEndTurnButton(true);
-            this.ui.updateActionIndicator("Move / Aim / Fire / Adjust Power");
-        }
-        
+        this.ui.toggleEndTurnButton(true);
+        this.ui.updateActionIndicator("Move / Aim / Fire / Adjust Power");
         this.ui.updatePowerIndicator(this.playerTank.currentPower, this.playerTank.minPower, this.playerTank.maxPower);
-
-        // Initialize mobile controls if on mobile
-        if (this.isMobile && this.mobileControls) {
-            this.mobileControls.startPlayerTurn();
-        }
     }
     
     nextTurn() {
@@ -344,15 +262,7 @@ export class Game {
             this.gameState = 'PLAYER_TURN';
             this.activeTank.resetTurnStats();
             this.ui.updateTurnIndicator(`${this.difficultyConfig.name} - Player's Turn`);
-            
-            if (!this.isMobile) {
-                this.ui.toggleEndTurnButton(true);
-            }
-
-            // Mobile turn start
-            if (this.isMobile && this.mobileControls) {
-                this.mobileControls.startPlayerTurn();
-            }
+            this.ui.toggleEndTurnButton(true);
         } else {
             this.activeTank = this.enemyTanks[this.currentPlayerIndex];
             if (this.activeTank.isDestroyed) {
@@ -362,13 +272,8 @@ export class Game {
             this.gameState = 'ENEMY_TURN';
             this.activeTank.resetTurnStats();
             this.ui.updateTurnIndicator(`${this.difficultyConfig.name} - Enemy ${this.currentPlayerIndex + 1}'s Turn`);
-            
-            if (this.isMobile) {
-                this.ui.updateMobileActionIndicator("Enemy analyzing...");
-            } else {
-                this.ui.updateActionIndicator("Enemy is analyzing battlefield...");
-                this.ui.toggleEndTurnButton(false);
-            }
+            this.ui.updateActionIndicator("Enemy is analyzing battlefield...");
+            this.ui.toggleEndTurnButton(false);
             
             // AI reaction time based on difficulty
             setTimeout(() => this.executeEnemyTurn(this.activeTank), this.difficultyConfig.aiReactionTime);
@@ -396,11 +301,7 @@ export class Game {
         // Advanced AI decision making
         const aiDecision = this.makeAIDecision(enemy, playerPos, distanceToPlayer);
         
-        if (this.isMobile) {
-            this.ui.updateMobileActionIndicator(`Enemy ${aiDecision.action}...`);
-        } else {
-            this.ui.updateActionIndicator(`Enemy is ${aiDecision.action}...`);
-        }
+        this.ui.updateActionIndicator(`Enemy is ${aiDecision.action}...`);
         
         // Execute AI decision
         this.executeAIDecision(enemy, aiDecision);
@@ -410,7 +311,7 @@ export class Game {
         setTimeout(() => this.nextTurn(), turnDelay);
     }
 
-    // AI decision making methods (keeping existing implementation)
+    // Fixed AI decision making - make enemies more aggressive
     makeAIDecision(enemy, playerPos, distanceToPlayer) {
         const config = enemy.aiDifficulty;
         const enemyPos = enemy.mesh.position.clone();
@@ -418,7 +319,7 @@ export class Game {
         // Assess current situation
         const lineOfSight = this.hasLineOfSight(enemyPos, playerPos);
         const inCover = this.isInCover(enemyPos);
-        const playerInRange = distanceToPlayer <= 50;
+        const playerInRange = distanceToPlayer <= 60; // Increased range
         const hasAmmo = !enemy.hasFiredThisTurn;
         const lowHealth = enemy.currentHealth < enemy.maxHealth * 0.4;
         const lowFuel = enemy.currentFuel < enemy.maxFuel * 0.3;
@@ -426,28 +327,32 @@ export class Game {
         // Strategic decision matrix based on difficulty
         let decision = { action: 'thinking', priority: 0 };
         
-        // High priority: Emergency retreat if low health
-        if (lowHealth && config.strategicThinking > 0.5) {
+        // HIGH PRIORITY: Shoot if opportunity exists (more aggressive)
+        if (hasAmmo && playerInRange && decision.priority < 9) {
+            // Much more lenient shooting conditions
+            const canAttemptShot = lineOfSight || (distanceToPlayer < 30);
+            
+            if (canAttemptShot) {
+                // Base accuracy on difficulty rather than complex calculations
+                const baseAccuracy = Math.max(0.3, config.aimAccuracy * 0.8);
+                decision = {
+                    action: 'engaging target',
+                    type: 'shoot',
+                    accuracy: baseAccuracy,
+                    priority: 9
+                };
+            }
+        }
+        
+        // Emergency retreat if low health (lower priority than shooting)
+        if (lowHealth && config.strategicThinking > 0.5 && decision.priority < 8) {
             const coverPosition = this.findBestCover(enemyPos, playerPos);
             if (coverPosition && !inCover) {
                 decision = {
                     action: 'retreating to cover',
                     type: 'move',
                     target: coverPosition,
-                    priority: 10
-                };
-            }
-        }
-        
-        // High priority: Shoot if good opportunity
-        if (hasAmmo && lineOfSight && playerInRange && decision.priority < 9) {
-            const shootingAccuracy = this.calculateShootingAccuracy(enemy, playerPos, distanceToPlayer);
-            if (shootingAccuracy > config.aimAccuracy) {
-                decision = {
-                    action: 'engaging target',
-                    type: 'shoot',
-                    accuracy: shootingAccuracy,
-                    priority: 9
+                    priority: 8
                 };
             }
         }
@@ -464,7 +369,8 @@ export class Game {
                         priority: 7
                     };
                 }
-            } else if (distanceToPlayer > 35 && !lineOfSight) {
+            } else if (distanceToPlayer > 40 && !lineOfSight) {
+                // Move to better position for line of sight
                 const flankPosition = this.findFlankingPosition(enemyPos, playerPos);
                 if (flankPosition) {
                     decision = {
@@ -479,15 +385,15 @@ export class Game {
         
         // Low priority: Basic movement
         if (decision.priority < 5) {
-            const idealDistance = 25;
-            if (distanceToPlayer > idealDistance + 10) {
+            const idealDistance = 25; // Preferred engagement distance
+            if (distanceToPlayer > idealDistance + 15) {
                 decision = {
                     action: 'advancing on target',
                     type: 'move',
                     target: this.getPositionTowards(enemyPos, playerPos, idealDistance),
                     priority: 4
                 };
-            } else if (distanceToPlayer < idealDistance - 10) {
+            } else if (distanceToPlayer < idealDistance - 5) {
                 decision = {
                     action: 'maintaining distance',
                     type: 'move',
@@ -529,21 +435,27 @@ export class Game {
 
     executeAIShoot(enemy, baseAccuracy) {
         const playerPos = this.playerTank.mesh.position.clone();
+        const enemyPos = enemy.mesh.position.clone();
         
-        // Aim at target with accuracy modifier
+        // Aim at target horizontally
         enemy.aimTowards(playerPos);
         
-        // Calculate proper barrel elevation for the shot
-        const distance = enemy.mesh.position.distanceTo(playerPos);
-        const heightDiff = playerPos.y - enemy.mesh.position.y;
-        const optimalElevation = this.calculateOptimalElevation(distance, heightDiff);
+        // Calculate proper ballistics
+        const distance = enemyPos.distanceTo(playerPos);
+        const heightDiff = playerPos.y - enemyPos.y;
         
-        // Apply accuracy scatter
-        const accuracyFactor = baseAccuracy * enemy.aiDifficulty.aimAccuracy;
-        const elevationScatter = (1 - accuracyFactor) * 0.15;
-        const finalElevation = optimalElevation + (Math.random() - 0.5) * elevationScatter;
+        // Physics-based elevation calculation
+        const optimalElevation = this.calculatePhysicsBasedElevation(distance, heightDiff, enemy);
         
-        // Set barrel elevation properly
+        // Apply accuracy scatter based on difficulty
+        const accuracyFactor = baseAccuracy;
+        const maxScatter = (1 - accuracyFactor) * 0.2; // Max 20% scatter
+        
+        // Add scatter to elevation
+        const elevationScatter = (Math.random() - 0.5) * maxScatter;
+        const finalElevation = optimalElevation + elevationScatter;
+        
+        // Set barrel elevation
         const targetElevation = Math.max(
             enemy.minBarrelElevation, 
             Math.min(enemy.maxBarrelElevation, finalElevation)
@@ -552,17 +464,76 @@ export class Game {
         const elevationDifference = targetElevation - enemy.barrelElevation;
         enemy.elevateBarrel(elevationDifference);
         
-        // Set power based on distance and difficulty
-        const optimalPower = Math.min(enemy.maxPower, 
-            enemy.minPower + (distance / 50) * (enemy.maxPower - enemy.minPower)
-        );
-        enemy.currentPower = optimalPower;
+        // Calculate optimal power for the distance
+        const optimalPower = this.calculateOptimalPower(distance, targetElevation, enemy);
+        enemy.currentPower = Math.max(enemy.minPower, Math.min(enemy.maxPower, optimalPower));
+        
+        // Add horizontal scatter for turret aiming
+        if (accuracyFactor < 1.0) {
+            const horizontalScatter = (Math.random() - 0.5) * maxScatter * 0.5;
+            enemy.rotateTurret(horizontalScatter);
+        }
         
         // Shoot
         enemy.shoot();
         enemy.turnsSinceLastShot = 0;
         
-        console.log(`AI ${enemy.id}: Distance ${distance.toFixed(1)}m, HeightDiff ${heightDiff.toFixed(1)}m, TargetElevation ${(targetElevation * 180 / Math.PI).toFixed(1)}°, Power ${optimalPower.toFixed(1)}%`);
+        console.log(`AI ${enemy.id}: Distance ${distance.toFixed(1)}m, Elevation ${(targetElevation * 180 / Math.PI).toFixed(1)}°, Power ${enemy.currentPower.toFixed(1)}, Accuracy ${(accuracyFactor * 100).toFixed(1)}%`);
+    }
+
+    // Physics-based ballistics calculation
+    calculatePhysicsBasedElevation(distance, heightDiff, tank) {
+        // Use actual projectile physics to calculate required angle
+        const g = 9.81 * 2; // Same gravity as projectile
+        const v0 = this.calculateProjectileSpeed(tank.currentPower || 50, tank); // Initial velocity
+        
+        // For projectile motion: range = (v0² * sin(2θ)) / g
+        // Solving for angle with height difference
+        
+        const horizontalDistance = Math.sqrt(Math.max(0, distance * distance - heightDiff * heightDiff));
+        
+        // Try to solve the ballistics equation
+        // For simplicity, use approximation that works well for tank ranges
+        const discriminant = Math.pow(v0, 4) - g * (g * horizontalDistance * horizontalDistance + 2 * heightDiff * v0 * v0);
+        
+        if (discriminant < 0) {
+            // Target out of range, use maximum practical angle
+            return Math.PI / 4; // 45 degrees
+        }
+        
+        // Calculate the two possible angles (high and low trajectory)
+        const angle1 = Math.atan((v0 * v0 + Math.sqrt(discriminant)) / (g * horizontalDistance));
+        const angle2 = Math.atan((v0 * v0 - Math.sqrt(discriminant)) / (g * horizontalDistance));
+        
+        // Prefer the lower trajectory for direct fire
+        const preferredAngle = Math.min(angle1, angle2);
+        
+        // Ensure angle is within tank limitations
+        return Math.max(-Math.PI / 12, Math.min(Math.PI / 3, preferredAngle));
+    }
+
+    // Calculate projectile speed based on power (should match tank.js logic)
+    calculateProjectileSpeed(power, tank) {
+        const powerRatio = (power - tank.minPower) / (tank.maxPower - tank.minPower);
+        return tank.minProjectileSpeed + powerRatio * (tank.maxProjectileSpeed - tank.minProjectileSpeed);
+    }
+
+    // Calculate optimal power for given distance and elevation
+    calculateOptimalPower(distance, elevation, tank) {
+        // Work backwards from desired range to required initial velocity
+        const g = 9.81 * 2;
+        const horizontalDistance = distance * Math.cos(Math.atan2(0, distance)); // Approximate
+        
+        // Required velocity for this range at this angle
+        const requiredV0Squared = (g * horizontalDistance) / Math.sin(2 * elevation);
+        const requiredV0 = Math.sqrt(Math.max(0, requiredV0Squared));
+        
+        // Convert velocity back to power setting
+        const powerRatio = (requiredV0 - tank.minProjectileSpeed) / (tank.maxProjectileSpeed - tank.minProjectileSpeed);
+        const calculatedPower = tank.minPower + powerRatio * (tank.maxPower - tank.minPower);
+        
+        // Add some extra power for safety margin
+        return Math.min(tank.maxPower, calculatedPower * 1.2);
     }
 
     executeAIMove(enemy, targetPosition) {
@@ -571,10 +542,11 @@ export class Game {
         const enemyPos = enemy.mesh.position.clone();
         const direction = targetPosition.clone().sub(enemyPos).normalize();
         const moveDistance = Math.min(
-            enemy.currentFuel / 20,
+            enemy.currentFuel / 20, // Conservative fuel usage
             enemyPos.distanceTo(targetPosition)
         );
         
+        // Move towards target
         const fuelEfficiency = enemy.aiDifficulty.fuelEfficiency;
         const actualMoveDistance = moveDistance * fuelEfficiency;
         
@@ -587,21 +559,24 @@ export class Game {
         const playerPos = this.playerTank.mesh.position.clone();
         enemy.aimTowards(playerPos);
         
+        // Calculate proper barrel elevation
         const distance = enemy.mesh.position.distanceTo(playerPos);
         const heightDiff = playerPos.y - enemy.mesh.position.y;
-        const optimalElevation = this.calculateOptimalElevation(distance, heightDiff);
+        const optimalElevation = this.calculatePhysicsBasedElevation(distance, heightDiff, enemy);
         
+        // Apply elevation more directly for aiming
         const targetElevation = Math.max(
             enemy.minBarrelElevation,
             Math.min(enemy.maxBarrelElevation, optimalElevation)
         );
         
+        // Smooth elevation adjustment towards target
         const elevationDiff = targetElevation - enemy.barrelElevation;
         const elevationStep = Math.sign(elevationDiff) * Math.min(Math.abs(elevationDiff), enemy.barrelElevateSpeed * 0.2);
         enemy.elevateBarrel(elevationStep);
     }
 
-    // AI Helper Functions (keeping existing implementation)
+    // AI Helper Functions
     hasLineOfSight(fromPos, toPos) {
         const direction = toPos.clone().sub(fromPos).normalize();
         const distance = fromPos.distanceTo(toPos);
@@ -638,6 +613,7 @@ export class Game {
             const distanceToThreat = coverPos.distanceTo(threatPos);
             const distanceToSelf = coverPos.distanceTo(fromPos);
             
+            // Score based on: close to self, far from threat, between self and threat
             const score = (distanceToThreat / 10) - (distanceToSelf / 20);
             
             if (score > bestScore && distanceToSelf > 3) {
@@ -656,10 +632,12 @@ export class Game {
             targetPos.x - fromPos.x
         ).normalize();
         
+        // Try both flanking directions
         const flankDistance = 15;
         const leftFlank = fromPos.clone().add(perpendicular.clone().multiplyScalar(flankDistance));
         const rightFlank = fromPos.clone().add(perpendicular.clone().multiplyScalar(-flankDistance));
         
+        // Choose the flank with better line of sight
         if (this.hasLineOfSight(leftFlank, targetPos)) {
             return leftFlank;
         } else if (this.hasLineOfSight(rightFlank, targetPos)) {
@@ -679,43 +657,57 @@ export class Game {
         return fromPos.clone().add(direction.multiplyScalar(desiredDistance * 0.2));
     }
 
+    // Legacy method kept for compatibility (used in executeAIAim)
     calculateOptimalElevation(distance, heightDiff) {
+        // For relatively flat terrain and typical combat ranges
         if (Math.abs(heightDiff) < 3) {
-            if (distance < 10) return 0;
-            if (distance < 20) return Math.PI / 36;
-            if (distance < 30) return Math.PI / 18;
-            if (distance < 40) return Math.PI / 12;
-            if (distance < 50) return Math.PI / 9;
-            return Math.PI / 6;
+            // Distance-based elevation for flat shots - more realistic for tank combat
+            if (distance < 10) return 0;                     // ~0° for very close targets
+            if (distance < 20) return Math.PI / 36;          // ~5° for close targets
+            if (distance < 30) return Math.PI / 18;          // ~10° for medium targets  
+            if (distance < 40) return Math.PI / 12;          // ~15° for far targets
+            if (distance < 50) return Math.PI / 9;           // ~20° for very far targets
+            return Math.PI / 6;                              // ~30° for maximum range
         }
         
+        // For targets with height differences
         const horizontalDistance = Math.sqrt(Math.max(0, distance * distance - heightDiff * heightDiff));
+        
+        // Base elevation for height difference
         let baseElevation = Math.atan2(heightDiff, Math.max(horizontalDistance, 1));
-        const arcAdjustment = (horizontalDistance / 60) * (Math.PI / 12);
+        
+        // Add additional elevation for projectile arc based on distance
+        const arcAdjustment = (horizontalDistance / 60) * (Math.PI / 12); // Gradual arc increase
+        
         const calculatedElevation = baseElevation + arcAdjustment;
         
+        // Clamp to reasonable tank firing angles
         return Math.max(-Math.PI / 24, Math.min(Math.PI / 4, calculatedElevation));
     }
 
+    // Fixed accuracy calculation - less harsh penalties
     calculateShootingAccuracy(enemy, targetPos, distance) {
-        let accuracy = 1.0;
+        let accuracy = 0.9; // Start higher
         
-        accuracy -= Math.min(0.4, distance / 100);
+        // Gentler distance penalty
+        accuracy -= Math.min(0.2, distance / 200); // Less harsh penalty
         
-        if (enemy.currentFuel < enemy.maxFuel * 0.9) {
-            accuracy -= 0.1;
+        // Smaller movement penalty
+        if (enemy.currentFuel < enemy.maxFuel * 0.8) {
+            accuracy -= 0.05; // Reduced penalty
         }
         
+        // Line of sight bonus
         if (this.hasLineOfSight(enemy.mesh.position, targetPos)) {
-            accuracy += 0.2;
-        }
-        
-        const heightDiff = enemy.mesh.position.y - targetPos.y;
-        if (heightDiff > 2) {
             accuracy += 0.1;
         }
         
-        return Math.max(0, Math.min(1, accuracy));
+        // Close range bonus
+        if (distance < 20) {
+            accuracy += 0.15;
+        }
+        
+        return Math.max(0.3, Math.min(1, accuracy)); // Minimum 30% accuracy
     }
 
     endPlayerTurn() {
@@ -725,7 +717,7 @@ export class Game {
     }
 
     update(deltaTime) {
-        if (this.gameState === 'GAME_OVER' || this.gameState === 'DIFFICULTY_SELECTION' || this.isPaused) return;
+        if (this.gameState === 'GAME_OVER' || this.gameState === 'DIFFICULTY_SELECTION') return;
 
         // Update projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
@@ -739,13 +731,8 @@ export class Game {
             }
         }
 
-        // Handle input based on device type
         if (this.gameState === 'PLAYER_TURN' && this.activeTank === this.playerTank && !this.playerTank.isDestroyed) {
-            if (this.isMobile && this.mobileControls) {
-                this.mobileControls.update(deltaTime);
-            } else {
-                this.handlePlayerInput(deltaTime);
-            }
+            this.handlePlayerInput(deltaTime);
             this.ui.updateFuel(this.playerTank.currentFuel, this.playerTank.maxFuel);
         }
         
@@ -764,7 +751,7 @@ export class Game {
     handlePlayerInput(deltaTime) {
         if (this.playerTank.isDestroyed) return;
 
-        // Desktop input handling
+        // Movement input handling
         if (this.inputStates.moveForward) {
             const forward = new THREE.Vector3(0, 0, -1);
             forward.applyQuaternion(this.playerTank.mesh.quaternion);
@@ -801,20 +788,6 @@ export class Game {
     addProjectile(projectile) {
         this.projectiles.push(projectile);
         this.scene.add(projectile.mesh);
-        
-        // Mobile-specific projectile handling
-        if (this.isMobile) {
-            this.vibrate(100); // Strong haptic feedback for firing
-            
-            // Auto end turn after firing on mobile (simplified gameplay)
-            if (this.autoEndTurnAfterFiring && projectile.firedByPlayer) {
-                setTimeout(() => {
-                    if (this.gameState === 'PLAYER_TURN') {
-                        this.endPlayerTurn();
-                    }
-                }, 2000);
-            }
-        }
     }
 
     checkProjectileCollision(projectile) {
@@ -825,32 +798,31 @@ export class Game {
             if (tank.isDestroyed) continue;
 
             const distance = projectile.mesh.position.distanceTo(tank.mesh.position);
-            const collisionRadius = tank.collisionRadius + projectile.collisionRadius;
-            const adjustedRadius = this.isMobile ? collisionRadius * this.mobileCollisionTolerance : collisionRadius;
-            
-            if (distance < adjustedRadius) {
+            if (distance < tank.collisionRadius + projectile.collisionRadius) {
+                // Create spectacular tank hit effect
                 const hitPosition = projectile.mesh.position.clone();
-                hitPosition.y = tank.mesh.position.y + 0.8;
+                hitPosition.y = tank.mesh.position.y + 0.8; // Adjust height to tank center
                 
+                // Determine hit intensity based on damage and tank health
                 const healthPercentage = tank.currentHealth / tank.maxHealth;
-                const hitIntensity = 1.2 - (healthPercentage * 0.5);
+                const hitIntensity = 1.2 - (healthPercentage * 0.5); // More intense when tank is more damaged
                 
+                // Create particle effects
                 this.particleSystem.createTankHitEffect(hitPosition, hitIntensity);
                 
+                // Apply damage
                 tank.takeDamage(projectile.damage);
                 this.ui.updateHealth(tank.id, tank.currentHealth, tank.maxHealth);
                 projectile.shouldBeRemoved = true;
                 
-                // Mobile haptic feedback for hits
-                if (this.isMobile) {
-                    this.vibrate(projectile.firedByPlayer ? 50 : 80);
-                }
-                
+                // Additional effects for destroyed tanks
                 if (tank.isDestroyed) {
+                    // Bigger explosion for destroyed tank
                     setTimeout(() => {
                         this.particleSystem.createTankHitEffect(hitPosition, hitIntensity * 1.5);
                     }, 200);
                     
+                    // Screen shake effect (if camera controller exists)
                     if (this.cameraController) {
                         this.createCameraShake(0.3, 1000);
                     }
@@ -866,16 +838,13 @@ export class Game {
             
             const distance = projectile.mesh.position.distanceTo(building.position);
             if (distance < building.userData.collisionRadius + projectile.collisionRadius) {
+                // Building hit effects
                 const hitPosition = projectile.mesh.position.clone();
                 this.particleSystem.createSmoke(hitPosition, 0.8);
                 this.particleSystem.createMetalDebris(hitPosition, 0.6);
                 
                 this.damageBuilding(building, projectile);
                 projectile.shouldBeRemoved = true;
-                
-                if (this.isMobile) {
-                    this.vibrate(30);
-                }
                 return;
             }
         }
@@ -886,15 +855,12 @@ export class Game {
             
             const distance = projectile.mesh.position.distanceTo(tree.position);
             if (distance < tree.userData.collisionRadius + projectile.collisionRadius) {
+                // Tree hit effects (simpler)
                 const hitPosition = projectile.mesh.position.clone();
                 this.particleSystem.createSmoke(hitPosition, 0.3);
                 
                 this.destroyTree(tree, projectile);
                 projectile.shouldBeRemoved = true;
-                
-                if (this.isMobile) {
-                    this.vibrate(20);
-                }
                 return;
             }
         }
@@ -909,15 +875,13 @@ export class Game {
             const craterDepth = 1.5;
             this.scene.userData.terrain.deformTerrain(projectile.mesh.position, 4, Math.abs(craterDepth));
             
+            // Ground impact effects
             const hitPosition = projectile.mesh.position.clone();
             hitPosition.y = terrainHeightAtImpact + 0.2;
             
+            // Create ground impact particles
             this.particleSystem.createSmoke(hitPosition, 0.5);
             this.particleSystem.createMetalDebris(hitPosition, 0.3);
-            
-            if (this.isMobile) {
-                this.vibrate(40);
-            }
             
             const dust = new THREE.Mesh(
                 new THREE.SphereGeometry(1.5, 12, 12),
@@ -934,8 +898,42 @@ export class Game {
             return;
         }
     }
-
-    // Building and tree destruction methods (keeping existing implementation with mobile optimization)
+    
+    /**
+     * Creates camera shake effect for dramatic impacts
+     */
+    createCameraShake(intensity, duration) {
+        if (!this.cameraController || !this.camera) return;
+        
+        const originalPosition = this.camera.position.clone();
+        const startTime = Date.now();
+        
+        const shakeCamera = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = elapsed / duration;
+            
+            if (progress >= 1) {
+                // Reset camera position
+                this.camera.position.copy(originalPosition);
+                return;
+            }
+            
+            // Apply diminishing shake
+            const currentIntensity = intensity * (1 - progress);
+            const shakeX = (Math.random() - 0.5) * currentIntensity;
+            const shakeY = (Math.random() - 0.5) * currentIntensity;
+            const shakeZ = (Math.random() - 0.5) * currentIntensity;
+            
+            this.camera.position.copy(originalPosition);
+            this.camera.position.add(new THREE.Vector3(shakeX, shakeY, shakeZ));
+            
+            requestAnimationFrame(shakeCamera);
+        };
+        
+        shakeCamera();
+    }
+    
+    // Building and Tree destruction methods (keeping existing implementation)
     damageBuilding(building, projectile) {
         if (building.userData.isDestroyed) return;
         
@@ -949,7 +947,7 @@ export class Game {
         this.scene.add(impact);
         setTimeout(() => this.scene.remove(impact), 400);
         
-        this.createBuildingDebris(projectile.mesh.position, this.isMobile ? 3 : 5);
+        this.createBuildingDebris(projectile.mesh.position, 5);
         
         if (building.userData.health <= 0) {
             this.destroyBuilding(building);
@@ -962,10 +960,11 @@ export class Game {
         building.userData.isDestroyed = true;
         building.userData.health = 0;
         
-        this.createBuildingDebris(building.position, this.isMobile ? 8 : 15);
+        this.createBuildingDebris(building.position, 15);
         
-        const collapseDuration = this.isMobile ? 2000 : 3000;
+        const collapseDuration = 3000;
         const startTime = Date.now();
+        const originalScale = building.scale.clone();
         
         const animateCollapse = () => {
             const elapsed = Date.now() - startTime;
@@ -1016,10 +1015,10 @@ export class Game {
                 Math.random() * Math.PI
             );
             
-            debris.castShadow = !this.isMobile; // No shadows on mobile
+            debris.castShadow = true;
             this.scene.add(debris);
             
-            setTimeout(() => this.scene.remove(debris), this.isMobile ? 10000 : 15000);
+            setTimeout(() => this.scene.remove(debris), 15000);
         }
     }
     
@@ -1032,9 +1031,9 @@ export class Game {
         const impactDirection = projectile.velocity.clone().normalize();
         impactDirection.y = 0;
         
-        this.createTreeDebris(tree.position, this.isMobile ? 4 : 8);
+        this.createTreeDebris(tree.position, 8);
         
-        const fallDuration = this.isMobile ? 1500 : 2000;
+        const fallDuration = 2000;
         const fallAngle = Math.PI / 2;
         const startTime = Date.now();
         const originalRotation = tree.rotation.clone();
@@ -1058,7 +1057,7 @@ export class Game {
             if (progress < 1) {
                 requestAnimationFrame(animateFall);
             } else {
-                setTimeout(() => this.fadeOutTree(tree), this.isMobile ? 2000 : 3000);
+                setTimeout(() => this.fadeOutTree(tree), 3000);
             }
         };
         
@@ -1077,6 +1076,82 @@ export class Game {
         setTimeout(() => this.scene.remove(crashEffect), 800);
     }
     
+    /**
+     * Simulates physics for debris pieces
+     */
+    simulateDebrisPhysics(debrisGroup) {
+        const startTime = Date.now();
+        const maxSimulationTime = 10000; // 10 seconds of physics simulation
+        
+        const animateDebris = () => {
+            const elapsed = Date.now() - startTime;
+            if (elapsed > maxSimulationTime || !debrisGroup.parent) {
+                return; // Stop simulation
+            }
+            
+            const deltaTime = 0.016; // ~60fps
+            
+            debrisGroup.userData.debrisPieces.forEach(debris => {
+                if (!debris.parent) return;
+                
+                const velocity = debris.userData.velocity;
+                const angularVel = debris.userData.angularVelocity;
+                
+                // Apply gravity
+                velocity.y += debris.userData.gravity * deltaTime;
+                
+                // Update position
+                debris.position.add(velocity.clone().multiplyScalar(deltaTime));
+                
+                // Update rotation
+                debris.rotation.x += angularVel.x * deltaTime;
+                debris.rotation.y += angularVel.y * deltaTime;
+                debris.rotation.z += angularVel.z * deltaTime;
+                
+                // Get terrain height at current position
+                const terrainHeight = this.scene.userData.terrain.getHeightAt(
+                    debris.position.x, 
+                    debris.position.z
+                );
+                
+                // Ground collision
+                if (debris.position.y <= terrainHeight + 0.1) {
+                    debris.position.y = terrainHeight + 0.1;
+                    
+                    // Bounce
+                    if (velocity.y < 0) {
+                        velocity.y = -velocity.y * debris.userData.bounce;
+                        
+                        // Apply horizontal friction
+                        velocity.x *= debris.userData.friction;
+                        velocity.z *= debris.userData.friction;
+                        
+                        // Reduce angular velocity on bounce
+                        angularVel.multiplyScalar(0.7);
+                        
+                        // Stop bouncing if velocity is too low
+                        if (Math.abs(velocity.y) < 1) {
+                            velocity.y = 0;
+                            velocity.x *= 0.9;
+                            velocity.z *= 0.9;
+                        }
+                    }
+                }
+                
+                // Fade out debris over time
+                if (elapsed > 8000) { // Start fading after 8 seconds
+                    const fadeProgress = (elapsed - 8000) / 2000; // 2 seconds fade
+                    debris.material.opacity = Math.max(0, 1 - fadeProgress);
+                    debris.material.transparent = true;
+                }
+            });
+            
+            requestAnimationFrame(animateDebris);
+        };
+        
+        animateDebris();
+    }
+    
     createTreeDebris(position, count = 6) {
         const debrisGroup = new THREE.Group();
         debrisGroup.userData.debrisPieces = [];
@@ -1093,112 +1168,56 @@ export class Game {
             });
             const debris = new THREE.Mesh(debrisGeo, debrisMat);
             
+            // Initial position with some spread
             debris.position.set(
                 position.x + (Math.random() - 0.5) * 4,
-                position.y + Math.random() * 2 + 1,
+                position.y + Math.random() * 2 + 1, // Start higher
                 position.z + (Math.random() - 0.5) * 4
             );
             
+            // Random initial rotation
             debris.rotation.set(
                 Math.random() * Math.PI,
                 Math.random() * Math.PI,
                 Math.random() * Math.PI
             );
             
-            debris.castShadow = !this.isMobile;
+            debris.castShadow = true;
             debrisGroup.add(debris);
             
+            // Add physics properties (lighter than building debris)
             debris.userData.velocity = new THREE.Vector3(
-                (Math.random() - 0.5) * 6,
-                Math.random() * 3 + 2,
-                (Math.random() - 0.5) * 6
+                (Math.random() - 0.5) * 6, // Horizontal velocity
+                Math.random() * 3 + 2,     // Upward velocity
+                (Math.random() - 0.5) * 6  // Horizontal velocity
             );
             debris.userData.angularVelocity = new THREE.Vector3(
                 (Math.random() - 0.5) * 0.3,
                 (Math.random() - 0.5) * 0.3,
                 (Math.random() - 0.5) * 0.3
             );
-            debris.userData.gravity = -12;
-            debris.userData.bounce = 0.4;
-            debris.userData.friction = 0.7;
+            debris.userData.gravity = -12; // Slightly less gravity (wood is lighter)
+            debris.userData.bounce = 0.4;  // More bounce
+            debris.userData.friction = 0.7; // Less friction
             
             debrisGroup.userData.debrisPieces.push(debris);
         }
         
         this.scene.add(debrisGroup);
         
+        // Start physics simulation
         this.simulateDebrisPhysics(debrisGroup);
         
+        // Remove after time
         setTimeout(() => {
             if (debrisGroup.parent) {
                 this.scene.remove(debrisGroup);
             }
-        }, this.isMobile ? 8000 : 10000);
-    }
-    
-    simulateDebrisPhysics(debrisGroup) {
-        const startTime = Date.now();
-        const maxSimulationTime = this.isMobile ? 8000 : 10000;
-        
-        const animateDebris = () => {
-            const elapsed = Date.now() - startTime;
-            if (elapsed > maxSimulationTime || !debrisGroup.parent) {
-                return;
-            }
-            
-            const deltaTime = 0.016;
-            
-            debrisGroup.userData.debrisPieces.forEach(debris => {
-                if (!debris.parent) return;
-                
-                const velocity = debris.userData.velocity;
-                const angularVel = debris.userData.angularVelocity;
-                
-                velocity.y += debris.userData.gravity * deltaTime;
-                
-                debris.position.add(velocity.clone().multiplyScalar(deltaTime));
-                
-                debris.rotation.x += angularVel.x * deltaTime;
-                debris.rotation.y += angularVel.y * deltaTime;
-                debris.rotation.z += angularVel.z * deltaTime;
-                
-                const terrainHeight = this.scene.userData.terrain.getHeightAt(
-                    debris.position.x, 
-                    debris.position.z
-                );
-                
-                if (debris.position.y <= terrainHeight + 0.1) {
-                    debris.position.y = terrainHeight + 0.1;
-                    
-                    if (velocity.y < 0) {
-                        velocity.y = -velocity.y * debris.userData.bounce;
-                        velocity.x *= debris.userData.friction;
-                        velocity.z *= debris.userData.friction;
-                        angularVel.multiplyScalar(0.7);
-                        
-                        if (Math.abs(velocity.y) < 1) {
-                            velocity.y = 0;
-                            velocity.x *= 0.9;
-                            velocity.z *= 0.9;
-                        }
-                    }
-                }
-                
-                if (elapsed > (maxSimulationTime - 2000)) {
-                    const fadeProgress = (elapsed - (maxSimulationTime - 2000)) / 2000;
-                    debris.material.opacity = Math.max(0, 1 - fadeProgress);
-                    debris.material.transparent = true;
-                }
-            });
-            
-            requestAnimationFrame(animateDebris);
-        };
-        
-        animateDebris();
+        }, 10000);
     }
     
     fadeOutTree(tree) {
-        const fadeDuration = this.isMobile ? 2000 : 3000;
+        const fadeDuration = 3000;
         const startTime = Date.now();
         
         const fadeAnimation = () => {
@@ -1227,38 +1246,6 @@ export class Game {
         fadeAnimation();
     }
     
-    createCameraShake(intensity, duration) {
-        if (!this.cameraController || !this.camera) return;
-        
-        const originalPosition = this.camera.position.clone();
-        const startTime = Date.now();
-        
-        // Reduce shake intensity on mobile for better UX
-        const adjustedIntensity = this.isMobile ? intensity * 0.6 : intensity;
-        
-        const shakeCamera = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = elapsed / duration;
-            
-            if (progress >= 1) {
-                this.camera.position.copy(originalPosition);
-                return;
-            }
-            
-            const currentIntensity = adjustedIntensity * (1 - progress);
-            const shakeX = (Math.random() - 0.5) * currentIntensity;
-            const shakeY = (Math.random() - 0.5) * currentIntensity;
-            const shakeZ = (Math.random() - 0.5) * currentIntensity;
-            
-            this.camera.position.copy(originalPosition);
-            this.camera.position.add(new THREE.Vector3(shakeX, shakeY, shakeZ));
-            
-            requestAnimationFrame(shakeCamera);
-        };
-        
-        shakeCamera();
-    }
-    
     gameOver(playerWon) {
         if (this.gameState === 'GAME_OVER') return;
         this.gameState = 'GAME_OVER';
@@ -1267,48 +1254,9 @@ export class Game {
             `Victory on ${difficultyText} Difficulty!\nAll Enemies Destroyed!` : 
             `Defeat on ${difficultyText} Difficulty!\nYour Tank Was Destroyed!`;
         this.ui.showGameOverMessage(message);
-        
-        if (!this.isMobile) {
-            this.ui.toggleEndTurnButton(false);
-        }
-
-        // Mobile haptic feedback for game over
-        if (this.isMobile) {
-            if (playerWon) {
-                // Victory vibration pattern
-                setTimeout(() => this.vibrate(100), 0);
-                setTimeout(() => this.vibrate(100), 200);
-                setTimeout(() => this.vibrate(200), 400);
-            } else {
-                // Defeat vibration
-                this.vibrate(500);
-            }
-        }
+        this.ui.toggleEndTurnButton(false);
     }
 
-    // Mobile utility methods
-    vibrate(duration) {
-        if (this.isMobile && this.hapticEnabled) {
-            navigator.vibrate(duration);
-        }
-    }
-
-    toggleMobileSettings() {
-        // Implementation for mobile settings
-        console.log('Mobile settings toggled');
-    }
-
-    pauseGame() {
-        this.isPaused = true;
-        console.log('Game paused');
-    }
-
-    resumeGame() {
-        this.isPaused = false;
-        console.log('Game resumed');
-    }
-
-    // Desktop input listeners (keeping existing implementation)
     setupInputListeners() {
         document.addEventListener('keydown', (event) => {
             if (this.gameState !== 'PLAYER_TURN') return;
@@ -1361,15 +1309,11 @@ export class Game {
 
     hideControlsInfo() {
         const controlsInfo = document.getElementById('controls-info');
-        if (controlsInfo) {
-            controlsInfo.classList.add('hidden');
-        }
+        controlsInfo.classList.add('hidden');
     }
 
     showControlsInfo() {
         const controlsInfo = document.getElementById('controls-info');
-        if (controlsInfo) {
-            controlsInfo.classList.remove('hidden');
-        }
+        controlsInfo.classList.remove('hidden');
     }
 }

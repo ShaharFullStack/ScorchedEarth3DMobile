@@ -2,19 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
 
 /* Global Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
 body {
     margin: 0;
     overflow: hidden;
@@ -23,46 +10,10 @@ body {
     font-family: 'Rajdhani', monospace;
     font-weight: 600;
     letter-spacing: 1px;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    touch-action: none;
 }
 
 canvas {
     display: block;
-    touch-action: none;
-}
-
-/* Device Detection Classes */
-.desktop-only {
-    display: block;
-}
-
-.mobile-only {
-    display: none;
-}
-
-/* Mobile Detection Media Query */
-@media (hover: none) and (pointer: coarse) {
-    .desktop-only {
-        display: none !important;
-    }
-    
-    .mobile-only {
-        display: block !important;
-    }
-}
-
-/* Additional mobile detection for smaller screens */
-@media (max-width: 768px) {
-    .desktop-only {
-        display: none !important;
-    }
-    
-    .mobile-only {
-        display: block !important;
-    }
 }
 
 /* Login Screen - Military Command Entry */
@@ -105,7 +56,7 @@ canvas {
 .login-content h1 {
     color: #ffd700;
     margin-bottom: 15px;
-    font-size: 42px;
+    font-size: 42;
     font-weight: 900;
     text-shadow: 
         2px 2px 4px rgba(0, 0, 0, 0.8),
@@ -123,7 +74,7 @@ canvas {
 }
 
 .login-form {
-    margin: 30px 0;
+    margin: 30px;
 }
 
 .login-form label {
@@ -238,7 +189,7 @@ canvas {
         inset 0 1px 3px rgba(255, 255, 255, 0.1);
 }
 
-/* Desktop UI Container - Military Command Panel Style */
+/* UI Container - Military Command Panel Style */
 #ui-container {
     position: absolute;
     top: 15px;
@@ -283,7 +234,7 @@ canvas {
     border-radius: 3px;
 }
 
-/* Desktop Button */
+/* Military Style Button */
 #ui-container button {
     background: linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
     border: 2px solid #daa520;
@@ -335,7 +286,7 @@ canvas {
         inset 0 1px 3px rgba(255, 255, 255, 0.1);
 }
 
-/* Desktop Controls Info - Tactical Display */
+/* Controls Info - Tactical Display */
 #controls-info {
     position: absolute;
     bottom: 15px;
@@ -384,425 +335,6 @@ canvas {
     padding: 2px 5px;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
-}
-
-/* ===== MOBILE STYLES ===== */
-
-/* Mobile Container */
-#mobile-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 100;
-    pointer-events: none;
-}
-
-#mobile-container > * {
-    pointer-events: auto;
-}
-
-/* Mobile Top Info Bar */
-.mobile-top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, rgba(45, 62, 35, 0.95) 0%, rgba(25, 35, 20, 0.95) 100%);
-    border-bottom: 2px solid #4a5d23;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    font-weight: bold;
-    min-height: 45px;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.mobile-info-left, .mobile-info-right {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 10px;
-}
-
-.mobile-info-center {
-    text-align: center;
-    font-size: 12px;
-    color: #ffd700;
-    font-weight: 900;
-    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
-}
-
-/* Mobile Bottom Controls */
-.mobile-bottom-controls {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, rgba(45, 62, 35, 0.98) 0%, rgba(25, 35, 20, 0.98) 100%);
-    border-top: 3px solid #4a5d23;
-    padding: 12px 15px 15px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    min-height: 110px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
-}
-
-/* Virtual Joystick */
-.virtual-joystick {
-    position: relative;
-    width: 70px;
-    height: 70px;
-    background: radial-gradient(circle, rgba(74, 93, 35, 0.6) 0%, rgba(35, 45, 25, 0.8) 100%);
-    border: 3px solid #4a5d23;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 
-        inset 0 2px 5px rgba(0, 0, 0, 0.5),
-        0 0 10px rgba(74, 93, 35, 0.3);
-}
-
-.joystick-knob {
-    width: 25px;
-    height: 25px;
-    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    position: absolute;
-    transition: none;
-    box-shadow: 
-        0 3px 6px rgba(0, 0, 0, 0.4),
-        0 0 8px rgba(0, 255, 65, 0.4);
-    touch-action: none;
-}
-
-.joystick-label {
-    position: absolute;
-    bottom: -18px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 8px;
-    color: #00ff41;
-    font-weight: bold;
-    font-family: 'Orbitron', monospace;
-}
-
-/* Mobile Power Control */
-.mobile-power-control {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-}
-
-.power-label {
-    font-size: 10px;
-    color: #00ff41;
-    font-weight: bold;
-    font-family: 'Orbitron', monospace;
-}
-
-.power-slider-container {
-    position: relative;
-    width: 24px;
-    height: 80px;
-    border: 2px solid #4a5d23;
-    border-radius: 12px;
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
-    background: #1a1a1a;
-}
-
-.power-slider-track {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, #ff4444 0%, #ffaa00 50%, #00ff41 100%);
-    border-radius: 10px;
-    opacity: 0.6;
-}
-
-.power-slider-thumb {
-    position: absolute;
-    width: 20px;
-    height: 16px;
-    background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-    border: 2px solid #4a5d23;
-    border-radius: 8px;
-    left: 0;
-    cursor: grab;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: none;
-}
-
-.power-slider-thumb:active {
-    cursor: grabbing;
-    transform: scale(1.1);
-}
-
-.power-value {
-    font-size: 9px;
-    color: #ffd700;
-    font-weight: bold;
-    margin-top: 3px;
-}
-
-/* Mobile Fire Button */
-.mobile-fire-button {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-    border: 3px solid #ffaa00;
-    border-radius: 50%;
-    color: #ffffff;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 
-        0 6px 12px rgba(0, 0, 0, 0.4),
-        0 0 15px rgba(255, 68, 68, 0.3);
-    transition: all 0.1s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-}
-
-.fire-icon {
-    font-size: 20px;
-    line-height: 1;
-}
-
-.fire-text {
-    font-size: 8px;
-    line-height: 1;
-    font-family: 'Orbitron', monospace;
-    margin-top: 2px;
-}
-
-.mobile-fire-button:active {
-    transform: scale(0.95);
-    box-shadow: 
-        0 3px 6px rgba(0, 0, 0, 0.4),
-        0 0 25px rgba(255, 68, 68, 0.6);
-}
-
-.mobile-fire-button:disabled {
-    background: linear-gradient(135deg, #666666 0%, #444444 100%);
-    border-color: #888888;
-    color: #aaaaaa;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transform: none;
-}
-
-.mobile-fire-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.mobile-fire-button:active::before {
-    left: 100%;
-}
-
-/* Mobile Aim Overlay */
-.mobile-aim-overlay {
-    position: absolute;
-    top: 45px;
-    left: 0;
-    right: 0;
-    bottom: 110px;
-    pointer-events: none;
-    z-index: 10;
-}
-
-/* Trajectory Overlay */
-.trajectory-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 15;
-}
-
-.trajectory-line {
-    stroke: #ffff00;
-    stroke-width: 2;
-    stroke-dasharray: 4,4;
-    fill: none;
-    opacity: 0.8;
-    filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.5));
-}
-
-.trajectory-target {
-    fill: #ff4444;
-    stroke: #ffffff;
-    stroke-width: 2;
-    filter: drop-shadow(0 0 3px rgba(255, 68, 68, 0.5));
-}
-
-/* Aim Crosshair */
-.aim-crosshair {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 30px;
-    height: 30px;
-    border: 2px solid #ffff00;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.aim-crosshair::before,
-.aim-crosshair::after {
-    content: '';
-    position: absolute;
-    background: #ffff00;
-}
-
-.aim-crosshair::before {
-    top: 50%;
-    left: 2px;
-    right: 2px;
-    height: 1px;
-    transform: translateY(-50%);
-}
-
-.aim-crosshair::after {
-    left: 50%;
-    top: 2px;
-    bottom: 2px;
-    width: 1px;
-    transform: translateX(-50%);
-}
-
-.aim-crosshair.active {
-    opacity: 0.8;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.2); }
-}
-
-/* Camera Hint */
-.camera-hint {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #00ff41;
-    padding: 6px 10px;
-    border-radius: 15px;
-    font-size: 9px;
-    border: 1px solid #4a5d23;
-    animation: fadeInOut 5s ease-in-out;
-    font-family: 'Rajdhani', monospace;
-}
-
-@keyframes fadeInOut {
-    0%, 100% { opacity: 0; }
-    20%, 80% { opacity: 1; }
-}
-
-/* Mobile End Turn Button */
-.mobile-end-turn-btn {
-    position: absolute;
-    bottom: 120px;
-    right: 15px;
-    background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
-    border: 2px solid #daa520;
-    color: #ffffff;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-    font-family: 'Orbitron', monospace;
-    touch-action: manipulation;
-}
-
-.mobile-end-turn-btn:active {
-    transform: scale(0.95);
-}
-
-.mobile-end-turn-btn:disabled {
-    background: linear-gradient(135deg, #666666 0%, #444444 100%);
-    border-color: #888888;
-    color: #aaaaaa;
-}
-
-/* Mobile Settings Button */
-.mobile-settings-btn {
-    position: absolute;
-    top: 55px;
-    right: 15px;
-    width: 35px;
-    height: 35px;
-    background: rgba(45, 62, 35, 0.9);
-    border: 2px solid #4a5d23;
-    border-radius: 50%;
-    color: #00ff41;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    touch-action: manipulation;
-}
-
-.mobile-settings-btn:active {
-    transform: scale(0.9);
-}
-
-/* Touch Feedback */
-.touch-feedback {
-    position: absolute;
-    width: 25px;
-    height: 25px;
-    background: radial-gradient(circle, rgba(0, 255, 65, 0.6) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    animation: touchRipple 0.6s ease-out forwards;
-    z-index: 1000;
-}
-
-@keyframes touchRipple {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(3);
-        opacity: 0;
-    }
 }
 
 /* Message Overlay - Military Alert Style */
@@ -948,6 +480,30 @@ canvas {
     animation: damageFlash 0.5s ease-in-out;
 }
 
+/* Damage Flash Animation - Enhanced */
+@keyframes damageFlash {
+    0% {
+        border-color: rgba(74, 93, 35, 0.8);
+        box-shadow: 0 0 5px rgba(74, 93, 35, 0.3);
+    }
+    25% {
+        border-color: rgba(255, 255, 0, 1);
+        box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+    }
+    50% {
+        border-color: rgba(255, 0, 0, 1);
+        box-shadow: 0 0 25px rgba(255, 0, 0, 1);
+    }
+    75% {
+        border-color: rgba(255, 140, 0, 1);
+        box-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
+    }
+    100% {
+        border-color: rgba(74, 93, 35, 0.8);
+        box-shadow: 0 0 5px rgba(74, 93, 35, 0.3);
+    }
+}
+
 /* Difficulty Selection Overlay - Military Command Selection */
 #difficulty-overlay {
     position: fixed;
@@ -981,9 +537,6 @@ canvas {
         inset 0 2px 5px rgba(255, 255, 255, 0.1);
     border: 4px solid #4a5d23;
     backdrop-filter: blur(8px);
-    max-width: 90%;
-    max-height: 90%;
-    overflow-y: auto;
 }
 
 .difficulty-content h2 {
@@ -1104,123 +657,4 @@ canvas {
     box-shadow: 
         0 15px 30px rgba(0, 0, 0, 0.4),
         0 0 25px rgba(231, 76, 60, 0.4);
-}
-
-/* Mobile responsive adjustments for difficulty selection */
-@media (max-width: 768px) {
-    .difficulty-content {
-        padding: 25px;
-        margin: 20px;
-    }
-    
-    .difficulty-content h2 {
-        font-size: 24px;
-        margin-bottom: 25px;
-    }
-    
-    .difficulty-options {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .difficulty-btn {
-        width: 100%;
-        max-width: 280px;
-        padding: 20px;
-    }
-    
-    .difficulty-btn h3 {
-        font-size: 18px;
-        margin-bottom: 15px;
-    }
-    
-    .difficulty-btn p {
-        font-size: 13px;
-    }
-}
-
-/* Mobile responsive adjustments */
-@media (max-height: 600px) {
-    .mobile-bottom-controls {
-        min-height: 95px;
-        padding: 8px 12px 12px 12px;
-    }
-    
-    .virtual-joystick, .mobile-fire-button {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .power-slider-container {
-        height: 65px;
-        width: 20px;
-    }
-    
-    .mobile-top-bar {
-        min-height: 40px;
-        font-size: 10px;
-    }
-    
-    .mobile-info-left, .mobile-info-right {
-        font-size: 9px;
-    }
-    
-    .mobile-info-center {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 350px) {
-    .virtual-joystick, .mobile-fire-button {
-        width: 55px;
-        height: 55px;
-    }
-    
-    .power-slider-container {
-        height: 60px;
-        width: 18px;
-    }
-    
-    .mobile-bottom-controls {
-        padding: 6px 10px 10px 10px;
-    }
-    
-    .mobile-top-bar {
-        padding: 6px 10px;
-    }
-}
-
-/* Landscape orientation adjustments for mobile */
-@media (orientation: landscape) and (max-height: 500px) {
-    .mobile-top-bar {
-        min-height: 35px;
-        padding: 5px 10px;
-        font-size: 9px;
-    }
-    
-    .mobile-bottom-controls {
-        min-height: 80px;
-        padding: 6px 12px 8px 12px;
-    }
-    
-    .virtual-joystick, .mobile-fire-button {
-        width: 55px;
-        height: 55px;
-    }
-    
-    .power-slider-container {
-        height: 55px;
-    }
-    
-    .mobile-end-turn-btn {
-        bottom: 85px;
-        padding: 6px 12px;
-        font-size: 9px;
-    }
-    
-    .camera-hint {
-        top: 40px;
-        font-size: 8px;
-        padding: 4px 8px;
-    }
 }
