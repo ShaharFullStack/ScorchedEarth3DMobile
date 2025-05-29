@@ -1,0 +1,1226 @@
+/* Military Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(45deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    color: #00ff41;
+    font-family: 'Rajdhani', monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+canvas {
+    display: block;
+    touch-action: none;
+}
+
+/* Device Detection Classes */
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+/* Mobile Detection Media Query */
+@media (hover: none) and (pointer: coarse) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* Additional mobile detection for smaller screens */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* Login Screen - Military Command Entry */
+#login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.4) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(74, 93, 35, 0.4) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    font-family: 'Orbitron', monospace;
+    backdrop-filter: blur(5px);
+}
+
+.login-content {
+    background: linear-gradient(135deg, 
+        rgba(45, 62, 35, 0.95) 0%, 
+        rgba(35, 45, 25, 0.95) 50%, 
+        rgba(25, 35, 20, 0.95) 100%);
+    padding: 20px 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(74, 93, 35, 0.4),
+        inset 0 2px 8px rgba(255, 255, 255, 0.1);
+    border: 4px solid #4a5d23;
+    backdrop-filter: blur(10px);
+    max-width: 500px;
+    width: 90%;
+}
+
+.login-content h1 {
+    color: #ffd700;
+    margin-bottom: 15px;
+    font-size: 42px;
+    font-weight: 900;
+    text-shadow: 
+        2px 2px 4px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+}
+
+.login-content .subtitle {
+    color: #00ff41;
+    margin-bottom: 40px;
+    font-size: 18px;
+    font-family: 'Rajdhani', monospace;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+}
+
+.login-form {
+    margin: 30px 0;
+}
+
+.login-form label {
+    display: block;
+    color: #00ff41;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.4);
+}
+
+.login-form input[type="text"] {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 18px;
+    font-family: 'Rajdhani', monospace;
+    font-weight: 600;
+    background: linear-gradient(135deg, 
+        rgba(20, 30, 15, 0.9) 0%, 
+        rgba(15, 25, 10, 0.9) 100%);
+    border: 3px solid #4a5d23;
+    border-radius: 8px;
+    color: #00ff41;
+    text-align: center;
+    letter-spacing: 2px;
+    box-shadow: 
+        inset 0 2px 5px rgba(0, 0, 0, 0.5),
+        0 0 10px rgba(74, 93, 35, 0.3);
+    transition: all 0.3s ease;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.3);
+}
+
+.login-form input[type="text"]:focus {
+    outline: none;
+    border-color: #6a7d43;
+    box-shadow: 
+        inset 0 2px 5px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(106, 125, 67, 0.6);
+    color: #00ff91;
+    text-shadow: 0 0 5px rgba(0, 255, 145, 0.5);
+}
+
+.login-form input[type="text"]::placeholder {
+    color: rgba(0, 255, 65, 0.4);
+    font-style: italic;
+}
+
+.login-btn {
+    background: linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+    border: 3px solid #daa520;
+    color: #fff;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.4s ease;
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.4),
+        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+.login-btn:hover::before {
+    left: 100%;
+}
+
+.login-btn:hover {
+    background: linear-gradient(135deg, #a0522d 0%, #cd853f 50%, #a0522d 100%);
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.4),
+        0 0 25px rgba(218, 165, 32, 0.5),
+        inset 0 2px 5px rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px);
+    border-color: #ffcc00;
+}
+
+.login-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 2px 5px rgba(255, 255, 255, 0.1);
+}
+
+.login-btn:disabled {
+    background: linear-gradient(135deg, #4a4a4a 0%, #666666 50%, #4a4a4a 100%);
+    border-color: #777;
+    color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Desktop UI Container - Military Command Panel Style */
+#ui-container {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 20px;
+    background: linear-gradient(135deg, 
+        rgba(45, 62, 35, 0.95) 0%, 
+        rgba(35, 45, 25, 0.95) 50%, 
+        rgba(25, 35, 20, 0.95) 100%);
+    border: 3px solid #4a5d23;
+    border-radius: 8px;
+    box-shadow: 
+        0 0 20px rgba(74, 93, 35, 0.3),
+        inset 0 2px 5px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    font-size: 16px;
+    min-width: 280px;
+    backdrop-filter: blur(5px);
+}
+
+#ui-container::before {
+    content: "⚡ COMMAND CENTER ⚡";
+    display: block;
+    text-align: center;
+    color: #ffd700;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #4a5d23;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+#ui-container p {
+    margin: 8px 0;
+    color: #00ff41;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+    padding: 5px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid #4a5d23;
+    border-radius: 3px;
+}
+
+/* Desktop Button */
+#ui-container button {
+    background: linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+    border: 2px solid #daa520;
+    color: #fff;
+    padding: 12px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    margin-top: 15px;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 3px rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+#ui-container button:hover {
+    background: linear-gradient(135deg, #a0522d 0%, #cd853f 50%, #a0522d 100%);
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.4),
+        0 0 15px rgba(218, 165, 32, 0.4),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+#ui-container button:active {
+    transform: translateY(0px);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+#ui-container button:disabled {
+    background: linear-gradient(135deg, #4a4a4a 0%, #666666 50%, #4a4a4a 100%);
+    border-color: #777;
+    color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Desktop Controls Info - Tactical Display */
+#controls-info {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, 
+        rgba(35, 45, 25, 0.9) 0%, 
+        rgba(25, 35, 20, 0.9) 50%, 
+        rgba(20, 30, 15, 0.9) 100%);
+    border: 2px solid #4a5d23;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Rajdhani', monospace;
+    color: #00ff41;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.3);
+    transition: all 0.5s ease-in-out;
+    opacity: 1;
+    backdrop-filter: blur(3px);
+    box-shadow: 
+        0 0 15px rgba(74, 93, 35, 0.2),
+        inset 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+#controls-info::before {
+    content: "🎯 TACTICAL CONTROLS";
+    display: block;
+    text-align: center;
+    color: #ffd700;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #4a5d23;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+#controls-info.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+#controls-info p {
+    margin: 3px 0;
+    padding: 2px 5px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+/* ===== MOBILE STYLES ===== */
+
+/* Mobile Container */
+#mobile-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none;
+}
+
+#mobile-container > * {
+    pointer-events: auto;
+}
+
+/* Mobile Top Info Bar */
+.mobile-top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, rgba(45, 62, 35, 0.95) 0%, rgba(25, 35, 20, 0.95) 100%);
+    border-bottom: 2px solid #4a5d23;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: bold;
+    min-height: 45px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-info-left, .mobile-info-right {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+}
+
+.mobile-info-center {
+    text-align: center;
+    font-size: 12px;
+    color: #ffd700;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/* Mobile Bottom Controls */
+.mobile-bottom-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, rgba(45, 62, 35, 0.98) 0%, rgba(25, 35, 20, 0.98) 100%);
+    border-top: 3px solid #4a5d23;
+    padding: 12px 15px 15px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 110px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Virtual Joystick */
+.virtual-joystick {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(circle, rgba(74, 93, 35, 0.6) 0%, rgba(35, 45, 25, 0.8) 100%);
+    border: 3px solid #4a5d23;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 
+        inset 0 2px 5px rgba(0, 0, 0, 0.5),
+        0 0 10px rgba(74, 93, 35, 0.3);
+}
+
+.joystick-knob {
+    width: 25px;
+    height: 25px;
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    transition: none;
+    box-shadow: 
+        0 3px 6px rgba(0, 0, 0, 0.4),
+        0 0 8px rgba(0, 255, 65, 0.4);
+    touch-action: none;
+}
+
+.joystick-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    color: #00ff41;
+    font-weight: bold;
+    font-family: 'Orbitron', monospace;
+}
+
+/* Mobile Power Control */
+.mobile-power-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.power-label {
+    font-size: 10px;
+    color: #00ff41;
+    font-weight: bold;
+    font-family: 'Orbitron', monospace;
+}
+
+.power-slider-container {
+    position: relative;
+    width: 24px;
+    height: 80px;
+    border: 2px solid #4a5d23;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+    background: #1a1a1a;
+}
+
+.power-slider-track {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #ff4444 0%, #ffaa00 50%, #00ff41 100%);
+    border-radius: 10px;
+    opacity: 0.6;
+}
+
+.power-slider-thumb {
+    position: absolute;
+    width: 20px;
+    height: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+    border: 2px solid #4a5d23;
+    border-radius: 8px;
+    left: 0;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+}
+
+.power-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+.power-value {
+    font-size: 9px;
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+/* Mobile Fire Button */
+.mobile-fire-button {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    border: 3px solid #ffaa00;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.4),
+        0 0 15px rgba(255, 68, 68, 0.3);
+    transition: all 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+}
+
+.fire-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.fire-text {
+    font-size: 8px;
+    line-height: 1;
+    font-family: 'Orbitron', monospace;
+    margin-top: 2px;
+}
+
+.mobile-fire-button:active {
+    transform: scale(0.95);
+    box-shadow: 
+        0 3px 6px rgba(0, 0, 0, 0.4),
+        0 0 25px rgba(255, 68, 68, 0.6);
+}
+
+.mobile-fire-button:disabled {
+    background: linear-gradient(135deg, #666666 0%, #444444 100%);
+    border-color: #888888;
+    color: #aaaaaa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: none;
+}
+
+.mobile-fire-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.mobile-fire-button:active::before {
+    left: 100%;
+}
+
+/* Mobile Aim Overlay */
+.mobile-aim-overlay {
+    position: absolute;
+    top: 45px;
+    left: 0;
+    right: 0;
+    bottom: 110px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Trajectory Overlay */
+.trajectory-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.trajectory-line {
+    stroke: #ffff00;
+    stroke-width: 2;
+    stroke-dasharray: 4,4;
+    fill: none;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.5));
+}
+
+.trajectory-target {
+    fill: #ff4444;
+    stroke: #ffffff;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 3px rgba(255, 68, 68, 0.5));
+}
+
+/* Aim Crosshair */
+.aim-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border: 2px solid #ffff00;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.aim-crosshair::before,
+.aim-crosshair::after {
+    content: '';
+    position: absolute;
+    background: #ffff00;
+}
+
+.aim-crosshair::before {
+    top: 50%;
+    left: 2px;
+    right: 2px;
+    height: 1px;
+    transform: translateY(-50%);
+}
+
+.aim-crosshair::after {
+    left: 50%;
+    top: 2px;
+    bottom: 2px;
+    width: 1px;
+    transform: translateX(-50%);
+}
+
+.aim-crosshair.active {
+    opacity: 0.8;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* Camera Hint */
+.camera-hint {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #00ff41;
+    padding: 6px 10px;
+    border-radius: 15px;
+    font-size: 9px;
+    border: 1px solid #4a5d23;
+    animation: fadeInOut 5s ease-in-out;
+    font-family: 'Rajdhani', monospace;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    20%, 80% { opacity: 1; }
+}
+
+/* Mobile End Turn Button */
+.mobile-end-turn-btn {
+    position: absolute;
+    bottom: 120px;
+    right: 15px;
+    background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+    border: 2px solid #daa520;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    font-family: 'Orbitron', monospace;
+    touch-action: manipulation;
+}
+
+.mobile-end-turn-btn:active {
+    transform: scale(0.95);
+}
+
+.mobile-end-turn-btn:disabled {
+    background: linear-gradient(135deg, #666666 0%, #444444 100%);
+    border-color: #888888;
+    color: #aaaaaa;
+}
+
+/* Mobile Settings Button */
+.mobile-settings-btn {
+    position: absolute;
+    top: 55px;
+    right: 15px;
+    width: 35px;
+    height: 35px;
+    background: rgba(45, 62, 35, 0.9);
+    border: 2px solid #4a5d23;
+    border-radius: 50%;
+    color: #00ff41;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    touch-action: manipulation;
+}
+
+.mobile-settings-btn:active {
+    transform: scale(0.9);
+}
+
+/* Touch Feedback */
+.touch-feedback {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: radial-gradient(circle, rgba(0, 255, 65, 0.6) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: touchRipple 0.6s ease-out forwards;
+    z-index: 1000;
+}
+
+@keyframes touchRipple {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
+
+/* Message Overlay - Military Alert Style */
+#message-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px 40px;
+    background: linear-gradient(135deg, 
+        rgba(139, 69, 19, 0.95) 0%, 
+        rgba(160, 82, 45, 0.95) 50%, 
+        rgba(139, 69, 19, 0.95) 100%);
+    border: 4px solid #daa520;
+    color: #fff;
+    font-size: 28px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    text-align: center;
+    border-radius: 15px;
+    display: none;
+    z-index: 100;
+    white-space: pre-line;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    box-shadow: 
+        0 0 30px rgba(218, 165, 32, 0.4),
+        0 10px 25px rgba(0, 0, 0, 0.6),
+        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#message-overlay::before {
+    content: "⚠️ BATTLEFIELD STATUS ⚠️";
+    display: block;
+    font-size: 16px;
+    color: #ffd700;
+    margin-bottom: 15px;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+}
+
+/* Health Bar Styles - Military HUD */
+.health-bar-container {
+    background: linear-gradient(90deg, #2d2d2d 0%, #3a3a3a 50%, #2d2d2d 100%);
+    border: 2px solid #4a5d23;
+    border-radius: 5px;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.health-bar-fill {
+    background: linear-gradient(90deg, #ff4444 0%, #ff6666 50%, #ff4444 100%);
+    box-shadow: 
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        0 0 8px rgba(255, 68, 68, 0.4);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.health-bar-fill.player {
+    background: linear-gradient(90deg, #00ff41 0%, #00ff91 50%, #00ff41 100%);
+    box-shadow: 
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        0 0 8px rgba(0, 255, 65, 0.4);
+}
+
+.health-bar-fill.low-health {
+    background: linear-gradient(90deg, #ff4444 0%, #ff0000 50%, #ff4444 100%);
+    animation: lowHealthPulse 1s infinite alternate;
+}
+
+.health-bar-fill.medium-health {
+    background: linear-gradient(90deg, #ffaa00 0%, #ffcc44 50%, #ffaa00 100%);
+}
+
+.health-bar-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    text-shadow: 
+        0 0 3px rgba(0, 0, 0, 0.8),
+        0 0 6px rgba(0, 255, 65, 0.3);
+    z-index: 10;
+}
+
+.tank-label {
+    font-family: 'Orbitron', monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #00ff41;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+/* Health bar animations */
+@keyframes lowHealthPulse {
+    0% {
+        box-shadow: 
+            inset 0 1px 2px rgba(255, 255, 255, 0.3),
+            0 0 8px rgba(255, 68, 68, 0.4);
+    }
+    100% {
+        box-shadow: 
+            inset 0 1px 2px rgba(255, 255, 255, 0.3),
+            0 0 15px rgba(255, 0, 0, 0.8);
+    }
+}
+
+/* Damage Flash Animation - Enhanced */
+@keyframes damageFlash {
+    0% {
+        border-color: rgba(74, 93, 35, 0.8);
+        box-shadow: 0 0 5px rgba(74, 93, 35, 0.3);
+    }
+    25% {
+        border-color: rgba(255, 255, 0, 1);
+        box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+    }
+    50% {
+        border-color: rgba(255, 0, 0, 1);
+        box-shadow: 0 0 25px rgba(255, 0, 0, 1);
+    }
+    75% {
+        border-color: rgba(255, 140, 0, 1);
+        box-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
+    }
+    100% {
+        border-color: rgba(74, 93, 35, 0.8);
+        box-shadow: 0 0 5px rgba(74, 93, 35, 0.3);
+    }
+}
+
+.health-bar-damage {
+    animation: damageFlash 0.5s ease-in-out;
+}
+
+/* Difficulty Selection Overlay - Military Command Selection */
+#difficulty-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 40%, rgba(139, 69, 19, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(74, 93, 35, 0.3) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(40, 40, 40, 0.9) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-family: 'Orbitron', monospace;
+    backdrop-filter: blur(3px);
+}
+
+.difficulty-content {
+    background: linear-gradient(135deg, 
+        rgba(45, 62, 35, 0.95) 0%, 
+        rgba(35, 45, 25, 0.95) 50%, 
+        rgba(25, 35, 20, 0.95) 100%);
+    padding: 50px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.7),
+        0 0 30px rgba(74, 93, 35, 0.3),
+        inset 0 2px 5px rgba(255, 255, 255, 0.1);
+    border: 4px solid #4a5d23;
+    backdrop-filter: blur(8px);
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+}
+
+.difficulty-content h2 {
+    color: #ffd700;
+    margin-bottom: 40px;
+    font-size: 36px;
+    font-weight: 900;
+    text-shadow: 
+        2px 2px 4px rgba(0, 0, 0, 0.8),
+        0 0 15px rgba(255, 215, 0, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.difficulty-content h2::before {
+    content: "🎖️ ";
+}
+
+.difficulty-content h2::after {
+    content: " 🎖️";
+}
+
+.difficulty-options {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.difficulty-btn {
+    background: linear-gradient(135deg, 
+        rgba(60, 75, 45, 0.9) 0%, 
+        rgba(45, 60, 35, 0.9) 50%, 
+        rgba(35, 50, 25, 0.9) 100%);
+    border: 3px solid #4a5d23;
+    border-radius: 15px;
+    padding: 25px;
+    width: 240px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    color: #00ff41;
+    font-family: 'Rajdhani', monospace;
+    font-weight: 600;
+    backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.difficulty-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+.difficulty-btn:hover::before {
+    left: 100%;
+}
+
+.difficulty-btn:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(74, 93, 35, 0.5);
+    border-color: #6a7d43;
+}
+
+.difficulty-btn h3 {
+    margin: 0 0 20px 0;
+    font-size: 22px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+}
+
+.difficulty-btn p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: #bdc3c7;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.difficulty-btn[data-difficulty="beginner"]:hover {
+    border-color: #27ae60;
+    background: linear-gradient(135deg, 
+        rgba(39, 174, 96, 0.2) 0%, 
+        rgba(46, 204, 113, 0.2) 50%, 
+        rgba(39, 174, 96, 0.2) 100%);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.4),
+        0 0 25px rgba(39, 174, 96, 0.4);
+}
+
+.difficulty-btn[data-difficulty="professional"]:hover {
+    border-color: #f39c12;
+    background: linear-gradient(135deg, 
+        rgba(243, 156, 18, 0.2) 0%, 
+        rgba(230, 126, 34, 0.2) 50%, 
+        rgba(243, 156, 18, 0.2) 100%);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.4),
+        0 0 25px rgba(243, 156, 18, 0.4);
+}
+
+.difficulty-btn[data-difficulty="veteran"]:hover {
+    border-color: #e74c3c;
+    background: linear-gradient(135deg, 
+        rgba(231, 76, 60, 0.2) 0%, 
+        rgba(192, 57, 43, 0.2) 50%, 
+        rgba(231, 76, 60, 0.2) 100%);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.4),
+        0 0 25px rgba(231, 76, 60, 0.4);
+}
+
+/* Mobile responsive adjustments for difficulty selection */
+@media (max-width: 768px) {
+    .difficulty-content {
+        padding: 25px;
+        margin: 20px;
+    }
+    
+    .difficulty-content h2 {
+        font-size: 24px;
+        margin-bottom: 25px;
+    }
+    
+    .difficulty-options {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .difficulty-btn {
+        width: 100%;
+        max-width: 280px;
+        padding: 20px;
+    }
+    
+    .difficulty-btn h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+    
+    .difficulty-btn p {
+        font-size: 13px;
+    }
+}
+
+/* Mobile responsive adjustments */
+@media (max-height: 600px) {
+    .mobile-bottom-controls {
+        min-height: 95px;
+        padding: 8px 12px 12px 12px;
+    }
+    
+    .virtual-joystick, .mobile-fire-button {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .power-slider-container {
+        height: 65px;
+        width: 20px;
+    }
+    
+    .mobile-top-bar {
+        min-height: 40px;
+        font-size: 10px;
+    }
+    
+    .mobile-info-left, .mobile-info-right {
+        font-size: 9px;
+    }
+    
+    .mobile-info-center {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 350px) {
+    .virtual-joystick, .mobile-fire-button {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .power-slider-container {
+        height: 60px;
+        width: 18px;
+    }
+    
+    .mobile-bottom-controls {
+        padding: 6px 10px 10px 10px;
+    }
+    
+    .mobile-top-bar {
+        padding: 6px 10px;
+    }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (orientation: landscape) and (max-height: 500px) {
+    .mobile-top-bar {
+        min-height: 35px;
+        padding: 5px 10px;
+        font-size: 9px;
+    }
+    
+    .mobile-bottom-controls {
+        min-height: 80px;
+        padding: 6px 12px 8px 12px;
+    }
+    
+    .virtual-joystick, .mobile-fire-button {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .power-slider-container {
+        height: 55px;
+    }
+    
+    .mobile-end-turn-btn {
+        bottom: 85px;
+        padding: 6px 12px;
+        font-size: 9px;
+    }
+    
+    .camera-hint {
+        top: 40px;
+        font-size: 8px;
+        padding: 4px 8px;
+    }
+}
