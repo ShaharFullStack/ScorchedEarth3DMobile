@@ -32,12 +32,12 @@ export class Tank {
         this.collisionRadius = 1.5; // For simple sphere collision
         
         // Firing properties
-        this.minPower = 10;
+        this.minPower = 5;
         this.maxPower = 100;
         this.currentPower = 50; // Default power
         this.powerIncrement = 1;
-        this.minProjectileSpeed = 15; // m/s at minPower
-        this.maxProjectileSpeed = 40; // m/s at maxPower
+        this.minProjectileSpeed = 5; // m/s at minPower
+        this.maxProjectileSpeed = 100; // m/s at maxPower
         
         // Barrel elevation - Fixed ranges for proper aiming
         this.barrelElevation = Math.PI / 36; // Approx 5 degrees (slightly up) - CHANGED from 0

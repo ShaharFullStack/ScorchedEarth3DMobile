@@ -431,9 +431,7 @@ export class Game {
                 this.executeAIAim(enemy);
                 break;
         }
-    }
-
-    executeAIShoot(enemy, baseAccuracy) {
+    }    executeAIShoot(enemy, baseAccuracy) {
         const playerPos = this.playerTank.mesh.position.clone();
         const enemyPos = enemy.mesh.position.clone();
         
@@ -444,12 +442,20 @@ export class Game {
         const distance = enemyPos.distanceTo(playerPos);
         const heightDiff = playerPos.y - enemyPos.y;
         
-        // Physics-based elevation calculation
+        // Start with a reasonable power estimate based on distance
+        let estimatedPower = Math.min(enemy.maxPower, Math.max(enemy.minPower, distance * 1.5 + 20));
+        enemy.currentPower = estimatedPower;
+        
+        // Calculate physics-based elevation with current power
         const optimalElevation = this.calculatePhysicsBasedElevation(distance, heightDiff, enemy);
+        
+        // Now recalculate optimal power for this elevation and distance
+        const optimalPower = this.calculateOptimalPower(distance, optimalElevation, enemy);
+        enemy.currentPower = optimalPower;
         
         // Apply accuracy scatter based on difficulty
         const accuracyFactor = baseAccuracy;
-        const maxScatter = (1 - accuracyFactor) * 0.2; // Max 20% scatter
+        const maxScatter = (1 - accuracyFactor) * 0.15; // Max 15% scatter
         
         // Add scatter to elevation
         const elevationScatter = (Math.random() - 0.5) * maxScatter;
@@ -464,76 +470,107 @@ export class Game {
         const elevationDifference = targetElevation - enemy.barrelElevation;
         enemy.elevateBarrel(elevationDifference);
         
-        // Calculate optimal power for the distance
-        const optimalPower = this.calculateOptimalPower(distance, targetElevation, enemy);
-        enemy.currentPower = Math.max(enemy.minPower, Math.min(enemy.maxPower, optimalPower));
-        
         // Add horizontal scatter for turret aiming
         if (accuracyFactor < 1.0) {
-            const horizontalScatter = (Math.random() - 0.5) * maxScatter * 0.5;
+            const horizontalScatter = (Math.random() - 0.5) * maxScatter * 0.3;
             enemy.rotateTurret(horizontalScatter);
         }
+        
+        // Add small power variation for realism
+        const powerVariation = (Math.random() - 0.5) * maxScatter * 10;
+        enemy.currentPower = Math.max(enemy.minPower, Math.min(enemy.maxPower, enemy.currentPower + powerVariation));
         
         // Shoot
         enemy.shoot();
         enemy.turnsSinceLastShot = 0;
         
         console.log(`AI ${enemy.id}: Distance ${distance.toFixed(1)}m, Elevation ${(targetElevation * 180 / Math.PI).toFixed(1)}°, Power ${enemy.currentPower.toFixed(1)}, Accuracy ${(accuracyFactor * 100).toFixed(1)}%`);
-    }
-
-    // Physics-based ballistics calculation
+    }// Physics-based ballistics calculation
     calculatePhysicsBasedElevation(distance, heightDiff, tank) {
         // Use actual projectile physics to calculate required angle
         const g = 9.81 * 2; // Same gravity as projectile
         const v0 = this.calculateProjectileSpeed(tank.currentPower || 50, tank); // Initial velocity
         
-        // For projectile motion: range = (v0² * sin(2θ)) / g
-        // Solving for angle with height difference
+        // Calculate horizontal distance (ground distance)
+        const horizontalDistance = Math.sqrt(Math.max(1, distance * distance - heightDiff * heightDiff));
         
-        const horizontalDistance = Math.sqrt(Math.max(0, distance * distance - heightDiff * heightDiff));
+        // Solve ballistics equation: y = x*tan(θ) - (g*x²)/(2*v0²*cos²(θ))
+        // Rearranged to: g*x²*tan²(θ) - 2*v0²*x*tan(θ) + g*x² + 2*v0²*heightDiff = 0
         
-        // Try to solve the ballistics equation
-        // For simplicity, use approximation that works well for tank ranges
-        const discriminant = Math.pow(v0, 4) + g * (g * horizontalDistance - g * horizontalDistance + 2 * heightDiff * v0 * v0);
+        const a = g * horizontalDistance * horizontalDistance;
+        const b = -2 * v0 * v0 * horizontalDistance;
+        const c = g * horizontalDistance * horizontalDistance + 2 * v0 * v0 * heightDiff;
+        
+        const discriminant = b * b - 4 * a * c;
         
         if (discriminant < 0) {
-            // Target out of range, use maximum practical angle
-            return Math.PI / 4; // 45 degrees
+            // Target out of range, use empirical angle based on distance
+            if (distance < 20) return Math.PI / 36; // 5 degrees for close range
+            if (distance < 40) return Math.PI / 18; // 10 degrees for medium range
+            return Math.PI / 12; // 15 degrees for long range
         }
         
-        // Calculate the two possible angles (high and low trajectory)
-        const angle1 = Math.atan((v0 * v0 + Math.sqrt(discriminant)) / (g * horizontalDistance));
-        const angle2 = Math.atan((v0 * v0 - Math.sqrt(discriminant)) / (g * horizontalDistance));
+        // Calculate the two possible tangent values
+        const tan1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+        const tan2 = (-b - Math.sqrt(discriminant)) / (2 * a);
         
-        // Prefer the lower trajectory for direct fire
-        const preferredAngle = Math.min(angle1, angle2);
+        // Convert to angles
+        const angle1 = Math.atan(tan1);
+        const angle2 = Math.atan(tan2);
         
-        // Ensure angle is within tank limitations
-        return Math.max(-Math.PI / 12, Math.min(Math.PI / 3, preferredAngle));
+        // Choose the lower angle for direct fire (more accurate)
+        let preferredAngle = (Math.abs(angle1) < Math.abs(angle2)) ? angle1 : angle2;
+        
+        // Ensure angle is within tank limitations (-15° to 60°)
+        preferredAngle = Math.max(-Math.PI / 12, Math.min(Math.PI / 3, preferredAngle));
+        
+        return preferredAngle;
     }
 
     // Calculate projectile speed based on power (should match tank.js logic)
     calculateProjectileSpeed(power, tank) {
-        const powerRatio = (power + tank.minPower) + (tank.maxPower + tank.minPower);
+        const powerRatio = (power - tank.minPower) / (tank.maxPower - tank.minPower);
         return tank.minProjectileSpeed + powerRatio * (tank.maxProjectileSpeed - tank.minProjectileSpeed);
-    }
-
-    // Calculate optimal power for given distance and elevation
+    }    // Calculate optimal power for given distance and elevation
     calculateOptimalPower(distance, elevation, tank) {
         // Work backwards from desired range to required initial velocity
-        const g = 9.81;
-        const horizontalDistance = distance * Math.cos(Math.atan2(0, distance)); // Approximate
+        const g = 9.81 * 2;
+        const horizontalDistance = distance * Math.cos(Math.atan2(Math.abs(elevation * distance * 0.1), distance));
         
-        // Required velocity for this range at this angle
-        const requiredV0Squared = (g * horizontalDistance) / Math.sin(2 * elevation);
-        const requiredV0 = Math.sqrt(Math.max(0, requiredV0Squared));
+        // Use projectile motion equation: range = (v0² * sin(2θ)) / g
+        // But account for height difference by using the actual trajectory equation
+        
+        let requiredV0;
+        
+        if (Math.abs(elevation) < 0.1) {
+            // For nearly flat shots, use simple range formula
+            requiredV0 = Math.sqrt((g * horizontalDistance) / Math.sin(2 * Math.max(0.1, Math.abs(elevation))));
+        } else {
+            // For angled shots, use more complex calculation
+            const cosElevation = Math.cos(elevation);
+            const sinElevation = Math.sin(elevation);
+            const tanElevation = Math.tan(elevation);
+            
+            // Solve: horizontalDistance = (v0² * cos(θ) / g) * (sin(θ) + sqrt(sin²(θ) + 2*g*h/v0²))
+            // Simplified approximation for required velocity
+            requiredV0 = Math.sqrt((g * horizontalDistance) / (2 * cosElevation * cosElevation * (sinElevation + Math.sqrt(sinElevation * sinElevation + 0.1))));
+        }
+        
+        // Ensure we have a valid velocity
+        requiredV0 = Math.max(tank.minProjectileSpeed, Math.min(tank.maxProjectileSpeed * 1.1, requiredV0));
         
         // Convert velocity back to power setting
-        const powerRatio = (requiredV0 - tank.minProjectileSpeed) / (tank.maxProjectileSpeed - tank.minProjectileSpeed);
-        const calculatedPower = tank.minPower + powerRatio * (tank.maxPower - tank.minPower);
+        const powerRange = tank.maxPower - tank.minPower;
+        const velocityRange = tank.maxProjectileSpeed - tank.minProjectileSpeed;
+        const powerRatio = (requiredV0 - tank.minProjectileSpeed) / velocityRange;
+        const calculatedPower = tank.minPower + powerRatio * powerRange;
         
-        // Add some extra power for safety margin
-        return Math.min(tank.maxPower, calculatedPower * 1.2);
+        // Apply minimum power based on distance to prevent underpowered shots
+        const minPowerForDistance = Math.min(tank.maxPower, Math.max(tank.minPower, distance * 1.2 + 15));
+        const finalPower = Math.max(minPowerForDistance, calculatedPower);
+        
+        // Clamp to valid power range
+        return Math.max(tank.minPower, Math.min(tank.maxPower, finalPower));
     }
 
     executeAIMove(enemy, targetPosition) {
@@ -553,15 +590,18 @@ export class Game {
         for (let i = 0; i < 5 && enemy.currentFuel > 0; i++) {
             enemy.move(direction, actualMoveDistance / 5);
         }
-    }
-
-    executeAIAim(enemy) {
+    }    executeAIAim(enemy) {
         const playerPos = this.playerTank.mesh.position.clone();
         enemy.aimTowards(playerPos);
         
         // Calculate proper barrel elevation
         const distance = enemy.mesh.position.distanceTo(playerPos);
         const heightDiff = playerPos.y - enemy.mesh.position.y;
+        
+        // Set a reasonable power for aiming calculations
+        const estimatedPower = Math.min(enemy.maxPower, Math.max(enemy.minPower, distance * 1.5 + 20));
+        enemy.currentPower = estimatedPower;
+        
         const optimalElevation = this.calculatePhysicsBasedElevation(distance, heightDiff, enemy);
         
         // Apply elevation more directly for aiming
