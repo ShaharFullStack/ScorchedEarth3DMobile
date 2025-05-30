@@ -31,9 +31,10 @@ class MainApp {
         
         // Position camera initially for a good overview of larger map
         this.camera.position.set(0, 35, 40);
-        this.camera.lookAt(0, 0, 0);
-
-        this.game = new Game(this.scene, this.camera, this.renderer, this.ui);
+        this.camera.lookAt(0, 0, 0);        this.game = new Game(this.scene, this.camera, this.renderer, this.ui);
+        
+        // Make game instance available globally for debugging
+        window.gameInstance = this.game;
         
         // Show login screen first instead of difficulty selector
         this.ui.showLoginScreen();

@@ -209,31 +209,22 @@ export class UI {
     
     updateTurnIndicator(text) {
         this.turnIndicator.textContent = `Turn: ${text}`;
-    }
-
-    updateFuel(current, max) {
-        this.fuelIndicator.textContent = `Fuel: ${Math.floor(current)}/${max}`;
-    }
-
-    updateHealth(tankId, current, max) {
-        let tankName = "Unknown Tank";
-        if (tankId === 'player') {
-            tankName = this.playerName ? this.playerName : "Player";
-        } else if (tankId.startsWith('enemy_')) {
-            tankName = `Enemy ${parseInt(tankId.split('_')[1]) + 1}`;
-        }
-        this.healthIndicator.textContent = `${tankName} HP: ${current}/${max}`;
+    }    updateFuel(current, max) {
+        // Use shorter format for mobile - just show current value
+        this.fuelIndicator.textContent = `Fuel: ${Math.floor(current)}`;
+    }    updateHealth(tankId, current, max) {
+        // Simplified format for mobile - just show HP value
+        this.healthIndicator.textContent = `HP: ${current}`;
     }
     
     updateActionIndicator(text) {
         this.actionIndicator.textContent = `Actions: ${text}`;
     }
-    
-    updatePowerIndicator(current, min, max) {
-        this.powerIndicator.textContent = `Power: ${current}% (${min}-${max}%)`;
+      updatePowerIndicator(current, min, max) {
+        // Simplified format for mobile - just show current power
+        this.powerIndicator.textContent = `Power: ${current}%`;
     }
-    
-    updateBarrelElevation(elevationRadians) {
+      updateBarrelElevation(elevationRadians) {
         // Convert radians to degrees for display
         const elevationDegrees = Math.round(elevationRadians * 180 / Math.PI);
         
@@ -243,11 +234,13 @@ export class UI {
             barrelIndicator = document.createElement('p');
             barrelIndicator.id = 'barrel-indicator';
             barrelIndicator.style.margin = '5px 0';
+            barrelIndicator.className = 'mobile-hidden'; // Hide on mobile for space
             // Insert after power indicator
             this.powerIndicator.parentNode.insertBefore(barrelIndicator, this.powerIndicator.nextSibling);
         }
         
-        barrelIndicator.textContent = `Barrel: ${elevationDegrees}° (-15° to 60°)`;
+        // Compact format for mobile - just show angle
+        barrelIndicator.textContent = `Barrel: ${elevationDegrees}°`;
     }
     
     toggleEndTurnButton(enabled) {

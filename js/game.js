@@ -3,6 +3,7 @@ import { Tank } from './tank.js';
 import { Projectile } from './projectile.js';
 import { generateTrees, generateBuildings } from './sceneSetup.js';
 import { ParticleSystem } from './particleSystem.js';
+import { MobileControls } from './mobileControls.js';
 
 const PLAYER_ID = 'player';
 const ENEMY_ID_PREFIX = 'enemy_';
@@ -44,6 +45,15 @@ const DIFFICULTY_SETTINGS = {
     }
 };
 
+// Make mobile controls accessible globally for testing
+window.forceMobileControls = function() {
+    if (window.gameInstance && window.gameInstance.mobileControls) {
+        window.gameInstance.mobileControls.forceEnable();
+    } else {
+        console.log('Game instance or mobile controls not available');
+    }
+};
+
 export class Game {
     constructor(scene, camera, renderer, ui) {
         this.scene = scene;
@@ -79,8 +89,10 @@ export class Game {
             increasePower: false,
             decreasePower: false,
             barrelUp: false,
-            barrelDown: false
-        };
+            barrelDown: false        };
+        
+        // Initialize mobile controls
+        this.mobileControls = new MobileControls(this);
         
         this.setupInputListeners();
         this.ui.endTurnButton.addEventListener('click', () => this.endPlayerTurn());
@@ -582,15 +594,16 @@ export class Game {
             enemy.currentFuel / 20, // Conservative fuel usage
             enemyPos.distanceTo(targetPosition)
         );
-        
-        // Move towards target
+          // Move towards target
         const fuelEfficiency = enemy.aiDifficulty.fuelEfficiency;
         const actualMoveDistance = moveDistance * fuelEfficiency;
         
         for (let i = 0; i < 5 && enemy.currentFuel > 0; i++) {
             enemy.move(direction, actualMoveDistance / 5);
         }
-    }    executeAIAim(enemy) {
+    }
+
+    executeAIAim(enemy) {
         const playerPos = this.playerTank.mesh.position.clone();
         enemy.aimTowards(playerPos);
         
@@ -754,10 +767,13 @@ export class Game {
         if (this.gameState === 'PLAYER_TURN') {
             this.nextTurn();
         }
-    }
-
-    update(deltaTime) {
+    }    update(deltaTime) {
         if (this.gameState === 'GAME_OVER' || this.gameState === 'DIFFICULTY_SELECTION') return;
+
+        // Update mobile controls
+        if (this.mobileControls) {
+            this.mobileControls.update(deltaTime);
+        }
 
         // Update projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
@@ -1404,10 +1420,17 @@ export class Game {
     hideControlsInfo() {
         const controlsInfo = document.getElementById('controls-info');
         controlsInfo.classList.add('hidden');
-    }
-
-    showControlsInfo() {
+    }    showControlsInfo() {
         const controlsInfo = document.getElementById('controls-info');
         controlsInfo.classList.remove('hidden');
     }
 }
+
+// Make mobile controls accessible globally for testing
+window.forceMobileControls = function() {
+    if (window.gameInstance && window.gameInstance.mobileControls) {
+        window.gameInstance.mobileControls.forceEnable();
+    } else {
+        console.log('Game instance or mobile controls not available');
+    }
+};

@@ -620,14 +620,13 @@ export class Tank {
         }, 50);
         console.log(`${this.id} destroyed!`);
     }
-    
-    resetTurnStats() {
+      resetTurnStats() {
         this.currentFuel = this.maxFuel;
         // Don't reset power here, player should set it per turn or it persists
         this.hasFiredThisTurn = false;
         
         if(this.isPlayer) {
-            this.game.ui.updateActionIndicator("Move / Aim / Fire / Adjust Power");
+            this.game.ui.updateActionIndicator("Move/Aim/Fire");
             this.game.ui.updatePowerIndicator(this.currentPower, this.minPower, this.maxPower);
         }
     }

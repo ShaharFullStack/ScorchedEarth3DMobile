@@ -16,26 +16,60 @@
     }
     </script>
 </head>
-<body>
-    <div id="ui-container">
+<body>    <div id="ui-container">
         <p id="turn-indicator">Turn: Player</p>
-        <p id="fuel-indicator">Fuel: 100/100</p>
-        <p id="health-indicator">Player HP: 100/100</p>
-        <p id="power-indicator">Power: 50% (10-100%)</p>
-        <p id="action-indicator">Actions: Move / Aim / Fire / Adjust Power</p>
+        <p id="fuel-indicator">Fuel: 100</p>
+        <p id="health-indicator">HP: 100</p>
+        <p id="power-indicator">Power: 50%</p>
+        <p id="action-indicator" class="mobile-hidden">Actions: Move/Aim/Fire</p>
         <button id="end-turn-button">End Turn</button>
-    </div>
-    <div id="controls-info">
+    </div><div id="controls-info">
         <p>Controls:</p>
-        <p>W/S: Move Tank Forward/Backward</p>
-        <p>A/D: Rotate Tank Body</p>
-        <p>Q/E: Rotate Turret</p>
-        <p>Arrow Right: Elevate Barrel Up</p>
-        <p>Arrow Left: Elevate Barrel Down</p>
-        <p>Arrow Up/Down: Adjust Firing Power</p>
-        <p>Space: Fire</p>
-        <p>H: Toggle Controls Info</p>
+        <div class="controls-desktop">
+            <p>W/S: Move Tank Forward/Backward</p>
+            <p>A/D: Rotate Tank Body</p>
+            <p>Q/E: Rotate Turret</p>
+            <p>Arrow Right: Elevate Barrel Up</p>
+            <p>Arrow Left: Elevate Barrel Down</p>
+            <p>Arrow Up/Down: Adjust Firing Power</p>
+            <p>Space: Fire</p>
+            <p>H: Toggle Controls Info</p>
+        </div>
+        <div class="controls-mobile">
+            <p>Touch controls available below</p>
+            <p>Pinch to zoom, drag to rotate camera</p>
+            <p>Use virtual joystick and buttons</p>
+        </div>
     </div>
+    
+    <!-- Mobile Touch Controls -->
+    <div id="mobile-controls">
+        <!-- Virtual Joystick for Movement -->
+        <div id="joystick-container">
+            <div id="joystick-outer">
+                <div id="joystick-inner"></div>
+            </div>
+            <div class="joystick-label">Move</div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div id="action-buttons">
+            <div class="button-row">
+                <button class="mobile-btn" id="turret-left-btn">↰</button>
+                <button class="mobile-btn" id="barrel-up-btn">↑</button>
+                <button class="mobile-btn" id="turret-right-btn">↱</button>
+            </div>
+            <div class="button-row">
+                <button class="mobile-btn" id="power-down-btn">-</button>
+                <button class="mobile-btn fire-btn" id="fire-btn">🔥</button>
+                <button class="mobile-btn" id="power-up-btn">+</button>
+            </div>
+            <div class="button-row">
+                <button class="mobile-btn" id="barrel-down-btn">↓</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="message-overlay">Game Over!</div>
 
     <script type="module" src="./js/main.js"></script>
