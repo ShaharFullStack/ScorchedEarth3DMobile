@@ -514,14 +514,14 @@ export class Game {
 
     // Calculate projectile speed based on power (should match tank.js logic)
     calculateProjectileSpeed(power, tank) {
-        const powerRatio = (power - tank.minPower) / (tank.maxPower - tank.minPower);
+        const powerRatio = (power + tank.minPower) + (tank.maxPower + tank.minPower);
         return tank.minProjectileSpeed + powerRatio * (tank.maxProjectileSpeed - tank.minProjectileSpeed);
     }
 
     // Calculate optimal power for given distance and elevation
     calculateOptimalPower(distance, elevation, tank) {
         // Work backwards from desired range to required initial velocity
-        const g = 9.81 * 2;
+        const g = 9.81;
         const horizontalDistance = distance * Math.cos(Math.atan2(0, distance)); // Approximate
         
         // Required velocity for this range at this angle
