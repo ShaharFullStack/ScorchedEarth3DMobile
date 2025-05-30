@@ -5,6 +5,7 @@ export class AudioManager {
         this.sfxVolume = 0.7;
         this.currentMusic = null;
         this.isInitialized = false;
+        this.continuousSounds = {}; // Track playing continuous sounds
         
         // Load all sounds
         this.loadSounds();
@@ -15,6 +16,7 @@ export class AudioManager {
             gameplayBg: './assets/sounds/OpeningTune.mp3', // Reuse opening tune for background music
             enterTank: './assets/sounds/EnterTank.wav',
             turrentRotate: './assets/sounds/TurrentRotate.mp3',
+            tankMove: './assets/sounds/TankMove.mp3',
             shoot: './assets/sounds/shoot.mp3',
             tankHit: './assets/sounds/HitTank.mp3',
             explosion: './assets/sounds/KaBoom.mp3',
@@ -116,15 +118,17 @@ export class AudioManager {
             console.warn('Could not play music:', error);
         }
     }
-    
-    // Stop background music
+      // Stop background music
     stopMusic(fadeOut = true) {
         if (this.currentMusic) {
             if (fadeOut) {
-                this.fadeOut(this.currentMusic, 1000, () => {
-                    this.currentMusic.pause();
-                    this.currentMusic.currentTime = 0;
-                    this.currentMusic = null;
+                const musicToStop = this.currentMusic;
+                this.currentMusic = null; // Clear reference immediately
+                this.fadeOut(musicToStop, 1000, () => {
+                    if (musicToStop) {
+                        musicToStop.pause();
+                        musicToStop.currentTime = 0;
+                    }
                 });
             } else {
                 this.currentMusic.pause();
@@ -168,11 +172,94 @@ export class AudioManager {
 
     // Alias for playSFX to maintain compatibility
     playSound(soundName, volume = null) {
-        this.playSFX(soundName, volume);
+        this.playSFX(soundName, volume);    }
+
+    // Play continuous sound (loops until stopped)
+    playContinuousSound(soundName, volume = null) {
+        if (!this.isInitialized || !this.sounds[soundName]) {
+            console.warn(`Continuous sound not found: ${soundName}`);
+            return;
+        }
+
+        // If already playing, don't restart
+        if (this.isContinuousSoundPlaying(soundName)) {
+            console.log(`DEBUG: Continuous sound ${soundName} already playing, skipping`);
+            return;
+        }
+
+        console.log(`DEBUG: Playing continuous sound: ${soundName}`);
+
+        const audio = this.sounds[soundName].cloneNode ? 
+                     this.sounds[soundName].cloneNode() : 
+                     this.sounds[soundName];
+        
+        audio.volume = volume !== null ? volume : this.sfxVolume;
+        audio.loop = true;
+        audio.currentTime = 0;
+        
+        // Add to continuousSounds before playing
+        this.continuousSounds[soundName] = audio;
+        
+        try {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // Check if the sound is still in our continuousSounds (not stopped while loading)
+                    if (this.continuousSounds[soundName] === audio) {
+                        console.log(`DEBUG: Successfully started continuous sound: ${soundName}`);
+                    }
+                }).catch(error => {
+                    console.warn(`Continuous sound playback failed for ${soundName}:`, error);
+                    // Only remove if it's still our audio instance
+                    if (this.continuousSounds[soundName] === audio) {
+                        delete this.continuousSounds[soundName];
+                    }
+                });
+            } else {
+                console.log(`DEBUG: Successfully started continuous sound (no promise): ${soundName}`);
+            }
+        } catch (error) {
+            console.warn(`Error playing continuous sound ${soundName}:`, error);
+            // Only remove if it's still our audio instance
+            if (this.continuousSounds[soundName] === audio) {
+                delete this.continuousSounds[soundName];
+            }
+        }    }
+
+    // Stop specific continuous sound
+    stopContinuousSound(soundName) {
+        console.log(`DEBUG: Attempting to stop continuous sound: ${soundName}`);
+        if (this.continuousSounds[soundName]) {
+            console.log(`DEBUG: Found sound ${soundName}, stopping it`);
+            const audio = this.continuousSounds[soundName];
+            try {
+                audio.pause();
+                audio.currentTime = 0;
+            } catch (error) {
+                console.warn(`Error stopping continuous sound ${soundName}:`, error);
+            }
+            delete this.continuousSounds[soundName];
+            console.log(`DEBUG: Successfully stopped ${soundName}`);
+        } else {
+            console.log(`DEBUG: Sound ${soundName} not found in continuousSounds:`, Object.keys(this.continuousSounds));
+        }
     }
-    
-    // Fade in audio
+
+    // Stop all continuous sounds
+    stopAllContinuousSounds() {
+        for (const soundName in this.continuousSounds) {
+            this.stopContinuousSound(soundName);
+        }
+    }
+
+    // Check if a continuous sound is playing
+    isContinuousSoundPlaying(soundName) {
+        return !!this.continuousSounds[soundName];
+    }
+      // Fade in audio
     fadeIn(audio, targetVolume, duration) {
+        if (!audio) return;
+        
         const steps = 50;
         const stepTime = duration / steps;
         const volumeStep = targetVolume / steps;
@@ -180,16 +267,22 @@ export class AudioManager {
         
         const fadeInterval = setInterval(() => {
             currentStep++;
-            audio.volume = Math.min(volumeStep * currentStep, targetVolume);
+            if (audio) {
+                audio.volume = Math.min(volumeStep * currentStep, targetVolume);
+            }
             
             if (currentStep >= steps) {
                 clearInterval(fadeInterval);
             }
         }, stepTime);
     }
-    
-    // Fade out audio
+      // Fade out audio
     fadeOut(audio, duration, callback) {
+        if (!audio) {
+            if (callback) callback();
+            return;
+        }
+        
         const steps = 50;
         const stepTime = duration / steps;
         const startVolume = audio.volume;
@@ -198,7 +291,9 @@ export class AudioManager {
         
         const fadeInterval = setInterval(() => {
             currentStep++;
-            audio.volume = Math.max(startVolume - (volumeStep * currentStep), 0);
+            if (audio) {
+                audio.volume = Math.max(startVolume - (volumeStep * currentStep), 0);
+            }
             
             if (currentStep >= steps) {
                 clearInterval(fadeInterval);
@@ -230,5 +325,10 @@ export class AudioManager {
         if (this.currentMusic) {
             this.currentMusic.volume = this.musicVolume;
         }
+    }
+    
+    // Check if music is currently playing
+    isMusicPlaying() {
+        return this.currentMusic && !this.currentMusic.paused;
     }
 }

@@ -4,9 +4,9 @@ export class UI {
         this.turnIndicator = document.getElementById('turn-indicator');
         this.fuelIndicator = document.getElementById('fuel-indicator');
         this.healthIndicator = document.getElementById('health-indicator');
-        this.actionIndicator = document.getElementById('action-indicator');
-        this.powerIndicator = document.getElementById('power-indicator');
+        this.actionIndicator = document.getElementById('action-indicator');        this.powerIndicator = document.getElementById('power-indicator');
         this.endTurnButton = document.getElementById('end-turn-button');
+        this.stopMusicButton = document.getElementById('stop-music-button');
         this.messageOverlay = document.getElementById('message-overlay');
         
         this.playerName = '';
@@ -258,6 +258,15 @@ export class UI {
     
     toggleEndTurnButton(enabled) {
         this.endTurnButton.disabled = !enabled;
+    }
+    
+    toggleStopMusicButton(enabled) {
+        this.stopMusicButton.disabled = !enabled;
+        if (enabled) {
+            this.stopMusicButton.textContent = '🔇 Stop Music';
+        } else {
+            this.stopMusicButton.textContent = '🔇 No Music';
+        }
     }
     
     showGameOverMessage(message) {

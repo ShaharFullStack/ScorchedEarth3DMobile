@@ -408,22 +408,8 @@ export class Tank {
             if (distance < combinedRadius) {
                 return; // Collision with tree - block movement
             }
-        }
-          // Apply the movement
+        }        // Apply the movement
         this.mesh.position.add(moveVector);
-        
-        // Play tank movement sound (only for player tank to avoid audio spam)
-        if (this.isPlayer && this.game.audioManager && moveVector.length() > 0.01) {
-            // Use existing sound files - we can use 'enterTank' for movement sounds
-            if (!this.movementSoundPlaying) {
-                this.game.audioManager.playSound('enterTank');
-                this.movementSoundPlaying = true;
-                // Reset the flag after a short delay to allow for occasional sound playback
-                setTimeout(() => {
-                    this.movementSoundPlaying = false;
-                }, 500);
-            }
-        }
         
         // Update Y position based on terrain height
         if (this.scene.userData.terrain) {
@@ -453,17 +439,10 @@ export class Tank {
             if (this.currentFuel < 0) this.currentFuel = 0;
             this.game.ui.updateFuel(this.currentFuel, this.maxFuel);
         }
-    }
-
-    rotateTurret(angle) {
+    }    rotateTurret(angle) {
         if (this.isDestroyed) return;
         // Turret rotation does not consume fuel (strategic choice)
         this.turret.rotation.y += angle;
-        
-        // Play mechanical turret rotation sound for significant movements
-        if (this.game.audioManager && Math.abs(angle) > 0.05) {
-            this.game.audioManager.playSound('turrentRotate', 0.7); // Use enterTank sound at lower volume for mechanical feel
-        }
     }
     
     aimTowards(targetPosition) {

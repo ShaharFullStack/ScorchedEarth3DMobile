@@ -94,13 +94,23 @@ export class Game {
         
         // Initialize mobile controls
         this.mobileControls = new MobileControls(this);
-          this.setupInputListeners();
-        this.ui.endTurnButton.addEventListener('click', () => {
+          this.setupInputListeners();        this.ui.endTurnButton.addEventListener('click', () => {
             // Play button click sound
             if (this.audioManager) {
                 this.audioManager.playSound('enterTank', 0.4);
             }
             this.endPlayerTurn();
+        });        // Stop music button event listener
+        this.ui.stopMusicButton.addEventListener('click', () => {
+            if (this.audioManager) {
+                // Play button click sound
+                this.audioManager.playSound('enterTank', 0.3);
+                // Stop the music
+                this.audioManager.stopMusic(false); // No fade out for immediate stop
+                console.log('Music stopped by user');
+                // Update button state
+                this.updateMusicButtonState();
+            }
         });
         this.ui.onDifficultyChange = (difficulty) => this.setDifficulty(difficulty);
         this.setupControlsInfo();
@@ -253,22 +263,29 @@ export class Game {
         const playerName = this.ui.getPlayerName() || 'Player';
         this.ui.updateTurnIndicator(`${this.difficultyConfig.name} - ${playerName}'s Turn`);
         this.ui.updateFuel(this.activeTank.currentFuel, this.activeTank.maxFuel);
-        this.ui.updateHealth(this.activeTank.id, this.activeTank.currentHealth, this.activeTank.maxHealth);
-        this.ui.toggleEndTurnButton(true);
+        this.ui.updateHealth(this.activeTank.id, this.activeTank.currentHealth, this.activeTank.maxHealth);        this.ui.toggleEndTurnButton(true);
         this.ui.updateActionIndicator("Move / Aim / Fire / Adjust Power");
         this.ui.updatePowerIndicator(this.playerTank.currentPower, this.playerTank.minPower, this.playerTank.maxPower);
         
-        // Start gameplay background music
+        // Initialize music button state
+        this.updateMusicButtonState();
+          // Start gameplay background music
         if (this.audioManager) {
             this.audioManager.stopAllMusic();
             this.audioManager.playMusic('gameplayBg', true); // Loop background music
+            // Update button state after music starts
+            setTimeout(() => this.updateMusicButtonState(), 100);
         }
     }
-    
-    nextTurn() {
+      nextTurn() {
         this.activeTank.hasFiredThisTurn = false;
 
         if (this.gameState === 'GAME_OVER') return;
+
+        // Stop any continuous sounds when turn changes
+        if (this.audioManager) {
+            this.audioManager.stopAllContinuousSounds();
+        }
 
         this.currentPlayerIndex++;
         if (this.currentPlayerIndex >= this.enemyTanks.length) {
@@ -812,10 +829,50 @@ export class Game {
         } else if (this.enemyTanks.every(enemy => enemy.isDestroyed)) {
             this.gameOver(true);
         }
-    }
-
-    handlePlayerInput(deltaTime) {
+    }    handlePlayerInput(deltaTime) {
         if (this.playerTank.isDestroyed) return;
+
+        // Track if tank is currently moving
+        const isMoving = this.inputStates.moveForward || this.inputStates.moveBackward;
+        const isRotatingBody = this.inputStates.rotateLeft || this.inputStates.rotateRight;
+        const isRotatingTurret = this.inputStates.turretLeft || this.inputStates.turretRight;
+
+        // Debug logging for turret rotation
+        if (this.inputStates.turretLeft || this.inputStates.turretRight) {
+            console.log('DEBUG: Turret rotation inputs:', {
+                turretLeft: this.inputStates.turretLeft,
+                turretRight: this.inputStates.turretRight,
+                isRotatingTurret: isRotatingTurret,
+                soundPlaying: this.audioManager.isContinuousSoundPlaying('turrentRotate')
+            });
+        }
+
+        // Handle tank movement sounds
+        if (isMoving || isRotatingBody) {
+            if (!this.audioManager.isContinuousSoundPlaying('tankMove')) {
+                this.audioManager.playContinuousSound('tankMove', 0.3);
+            }
+        } else {
+            if (this.audioManager.isContinuousSoundPlaying('tankMove')) {
+                this.audioManager.stopContinuousSound('tankMove');
+            }
+        }
+
+        // Handle turret rotation sounds
+        if (isRotatingTurret) {
+            if (!this.audioManager.isContinuousSoundPlaying('turrentRotate')) {
+                console.log('DEBUG: Starting turrentRotate sound');
+                this.audioManager.playContinuousSound('turrentRotate', 0.4);
+            }
+        } else {
+            if (this.audioManager.isContinuousSoundPlaying('turrentRotate')) {
+                console.log('DEBUG: Stopping turrentRotate sound - input states:', {
+                    turretLeft: this.inputStates.turretLeft,
+                    turretRight: this.inputStates.turretRight
+                });
+                this.audioManager.stopContinuousSound('turrentRotate');
+            }
+        }
 
         // Movement input handling
         if (this.inputStates.moveForward) {
@@ -1367,13 +1424,13 @@ export class Game {
         };
         
         fadeAnimation();
-    }
-      gameOver(playerWon) {
+    }      gameOver(playerWon) {
         if (this.gameState === 'GAME_OVER') return;
         this.gameState = 'GAME_OVER';
         
-        // Stop gameplay music and play game over music
+        // Stop all continuous sounds when game ends
         if (this.audioManager) {
+            this.audioManager.stopAllContinuousSounds();
             this.audioManager.stopAllMusic();
             if (playerWon) {
                 this.audioManager.playSound('enterTank'); // Use enterTank for victory
@@ -1456,6 +1513,13 @@ export class Game {
     }    showControlsInfo() {
         const controlsInfo = document.getElementById('controls-info');
         controlsInfo.classList.remove('hidden');
+    }
+
+    updateMusicButtonState() {
+        if (this.audioManager && this.ui) {
+            const isMusicPlaying = this.audioManager.isMusicPlaying();
+            this.ui.toggleStopMusicButton(isMusicPlaying);
+        }
     }
 }
 

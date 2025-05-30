@@ -95,14 +95,17 @@ class MainApp {    constructor() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    animate() {
+    }    animate() {
         requestAnimationFrame(this.animate.bind(this));
         const deltaTime = this.clock.getDelta();
 
         if (this.game) {
             this.game.update(deltaTime);
+            
+            // Update music button state periodically (every few frames)
+            if (Math.random() < 0.01) { // ~1% chance per frame for light checking
+                this.game.updateMusicButtonState();
+            }
         }
         
         if (this.thirdPersonController && this.thirdPersonController.enabled) {

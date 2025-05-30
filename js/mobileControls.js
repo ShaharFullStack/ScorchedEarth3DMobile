@@ -326,18 +326,24 @@ export class MobileControls {    constructor(game) {
             this.setButtonState(actionName, false);
             button.classList.remove('active');
         });
-    }
-      setButtonState(actionName, active) {
+    }      setButtonState(actionName, active) {
         this.buttonStates[actionName] = active;
-        console.log(`Setting ${actionName} to ${active}`);
+        console.log(`DEBUG: Setting ${actionName} to ${active}`);
+        
+        // Special debug logging for turret controls
+        if (actionName === 'turretLeft' || actionName === 'turretRight') {
+            console.log(`DEBUG: Turret button ${actionName} state changed to ${active}`);
+        }
         
         // Map to game input states
         switch (actionName) {
             case 'turretLeft':
                 this.game.inputStates.turretLeft = active;
+                console.log(`DEBUG: Set game.inputStates.turretLeft = ${active}`);
                 break;
             case 'turretRight':
                 this.game.inputStates.turretRight = active;
+                console.log(`DEBUG: Set game.inputStates.turretRight = ${active}`);
                 break;
             case 'barrelUp':
                 this.game.inputStates.barrelUp = active;
