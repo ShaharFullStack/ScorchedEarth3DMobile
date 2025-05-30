@@ -3,19 +3,19 @@ import { ThirdPersonCameraController, FirstPersonCameraController } from './cont
 import { Game } from './game.js';
 import { setupScene } from './sceneSetup.js';
 import { UI } from './ui.js';
+import { AudioManager } from './audioManager.js';
 
-class MainApp {
-    constructor() {
+class MainApp {    constructor() {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500); // Extended far plane for larger map
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.clock = new THREE.Clock();
-        
-        this.thirdPersonController = null;
+          this.thirdPersonController = null;
         this.activeCameraTarget = null;
 
-        this.ui = new UI();
-        this.game = null; 
+        this.audioManager = new AudioManager();
+        this.ui = new UI(this.audioManager);
+        this.game = null;
 
         this.init();
     }
@@ -31,15 +31,17 @@ class MainApp {
         
         // Position camera initially for a good overview of larger map
         this.camera.position.set(0, 35, 40);
-        this.camera.lookAt(0, 0, 0);        this.game = new Game(this.scene, this.camera, this.renderer, this.ui);
+        this.camera.lookAt(0, 0, 0);        this.game = new Game(this.scene, this.camera, this.renderer, this.ui, this.audioManager);
         
         // Make game instance available globally for debugging
         window.gameInstance = this.game;
         
+        // Initialize audio on first user interaction
+        this.initializeAudio();
+        
         // Show login screen first instead of difficulty selector
         this.ui.showLoginScreen();
-        
-        // Set up difficulty selection handler (called after login)
+          // Set up difficulty selection handler (called after login)
         this.ui.onDifficultyChange = async (difficulty) => {
             await this.game.startGameInitialization();
             this.activeCameraTarget = this.game.playerTank.mesh;
@@ -49,6 +51,26 @@ class MainApp {
         };
 
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
+    }
+
+    async initializeAudio() {
+        // Initialize audio context on first user interaction (required by browsers)
+        const initAudio = async () => {
+            await this.audioManager.initializeAudioContext();
+            
+            // Start playing opening music
+            this.audioManager.playMusic('openingScreen');
+            
+            // Remove event listeners after first interaction
+            document.removeEventListener('click', initAudio);
+            document.removeEventListener('touchstart', initAudio);
+            document.removeEventListener('keydown', initAudio);
+        };
+
+        // Add event listeners for user interaction
+        document.addEventListener('click', initAudio);
+        document.addEventListener('touchstart', initAudio);
+        document.addEventListener('keydown', initAudio);
     }
 
     setupControllers() {

@@ -409,9 +409,21 @@ export class Tank {
                 return; // Collision with tree - block movement
             }
         }
-        
-        // Apply the movement
+          // Apply the movement
         this.mesh.position.add(moveVector);
+        
+        // Play tank movement sound (only for player tank to avoid audio spam)
+        if (this.isPlayer && this.game.audioManager && moveVector.length() > 0.01) {
+            // Use existing sound files - we can use 'enterTank' for movement sounds
+            if (!this.movementSoundPlaying) {
+                this.game.audioManager.playSound('enterTank');
+                this.movementSoundPlaying = true;
+                // Reset the flag after a short delay to allow for occasional sound playback
+                setTimeout(() => {
+                    this.movementSoundPlaying = false;
+                }, 500);
+            }
+        }
         
         // Update Y position based on terrain height
         if (this.scene.userData.terrain) {
@@ -447,6 +459,11 @@ export class Tank {
         if (this.isDestroyed) return;
         // Turret rotation does not consume fuel (strategic choice)
         this.turret.rotation.y += angle;
+        
+        // Play mechanical turret rotation sound for significant movements
+        if (this.game.audioManager && Math.abs(angle) > 0.05) {
+            this.game.audioManager.playSound('turrentRotate', 0.7); // Use enterTank sound at lower volume for mechanical feel
+        }
     }
     
     aimTowards(targetPosition) {
@@ -528,8 +545,7 @@ export class Tank {
             maxHeight: `${maxHeight.toFixed(1)} units`,
             timeOfFlight: `${timeOfFlight.toFixed(2)} seconds`
         });
-        
-        const projectile = new Projectile(
+          const projectile = new Projectile(
             barrelTip,
             initialVelocity,
             this.isPlayer,
@@ -539,10 +555,15 @@ export class Tank {
         projectile.shootingTank = this;
         this.game.addProjectile(projectile);
         this.hasFiredThisTurn = true;
+        
+        // Play shooting sound effect
+        if (this.game.audioManager) {
+            this.game.audioManager.playSound('shoot');
+        }
+        
         if (this.isPlayer) this.game.ui.updateActionIndicator("Aim / Move (Fired)");
     }
-    
-    takeDamage(amount) {
+      takeDamage(amount) {
         if (this.isDestroyed) return;
         
         const oldHealth = this.currentHealth;
@@ -550,9 +571,20 @@ export class Tank {
         
         console.log(`Tank ${this.id}: Taking ${amount} damage. Health: ${oldHealth} -> ${this.currentHealth}`);
         
+        // Play tank hit sound effect
+        if (this.game.audioManager) {
+            this.game.audioManager.playSound('tankHit');
+        }
+        
         if (this.currentHealth <= 0) {
             this.currentHealth = 0;
             this.isDestroyed = true;
+            
+            // Play explosion sound for destroyed tank
+            if (this.game.audioManager) {
+                this.game.audioManager.playSound('explosion');
+            }
+            
             this.destroy();
         }
         

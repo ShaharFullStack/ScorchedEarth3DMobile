@@ -1,5 +1,6 @@
 export class UI {
-    constructor() {
+    constructor(audioManager) {
+        this.audioManager = audioManager;
         this.turnIndicator = document.getElementById('turn-indicator');
         this.fuelIndicator = document.getElementById('fuel-indicator');
         this.healthIndicator = document.getElementById('health-indicator');
@@ -20,7 +21,9 @@ export class UI {
         this.loginOverlay.id = 'login-overlay';
         this.loginOverlay.innerHTML = `
             <div class="login-content">
-                <h1>Tank Commander</h1>
+                <h1>Scorched Earth</h1>
+                <h1>Return</h1>
+                <img class="startupImage" src="assets/images/tankTrans.png" alt="Scorched Earth Logo" class="logo">
                 <p class="subtitle">Identify yourself, soldier!</p>
                 <div class="login-form">
                     <label for="player-name">What's your name?</label>
@@ -63,10 +66,15 @@ export class UI {
                 }
             }
         });
-        
-        this.loginSubmitBtn.addEventListener('click', (e) => {
+          this.loginSubmitBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('Login button clicked');
+            
+            // Play button click sound
+            if (this.audioManager) {
+                this.audioManager.playSound('enterTank', 0.4);
+            }
+            
             if (this.playerNameInput.value.trim().length >= 2) {
                 this.onLoginSubmit();
             } else {
@@ -172,11 +180,16 @@ export class UI {
         
         // Initially hide it
         this.difficultyOverlay.style.display = 'none';
-        
-        // Add event listeners
+          // Add event listeners
         this.difficultyOverlay.querySelectorAll('.difficulty-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const difficulty = e.currentTarget.dataset.difficulty;
+                
+                // Play button click sound
+                if (this.audioManager) {
+                    this.audioManager.playSound('enterTank', 0.5);
+                }
+                
                 this.onDifficultySelected(difficulty);
             });
         });

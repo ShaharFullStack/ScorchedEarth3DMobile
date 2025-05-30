@@ -73,16 +73,25 @@ export class MobileControls {    constructor(game) {
         this.setupActionButtons();
         this.setupTouchCamera();
     }
-    
-    setupJoystick() {
+      setupJoystick() {
         const joystickOuter = document.getElementById('joystick-outer');
         const joystickInner = document.getElementById('joystick-inner');
         
-        if (!joystickOuter || !joystickInner) return;
+        if (!joystickOuter || !joystickInner) {
+            console.error('Joystick elements not found');
+            return;
+        }
+        
+        console.log('Setting up joystick controls');
+        
+        // Prevent context menu on long press
+        joystickOuter.addEventListener('contextmenu', (e) => e.preventDefault());
         
         // Touch start
         joystickOuter.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            
             const touch = e.touches[0];
             const rect = joystickOuter.getBoundingClientRect();
             
@@ -94,9 +103,14 @@ export class MobileControls {    constructor(game) {
             
             this.activeTouches.set(touch.identifier, 'joystick');
             this.updateJoystickPosition(touch.clientX, touch.clientY);
+            
+            // Visual feedback
+            joystickOuter.classList.add('active');
+            
+            console.log('Joystick touch started');
         });
         
-        // Touch move
+        // Touch move - attach to document to track outside joystick area
         document.addEventListener('touchmove', (e) => {
             for (const touch of e.touches) {
                 if (this.activeTouches.get(touch.identifier) === 'joystick') {
@@ -105,7 +119,7 @@ export class MobileControls {    constructor(game) {
                     break;
                 }
             }
-        });
+        }, { passive: false });
         
         // Touch end
         document.addEventListener('touchend', (e) => {
@@ -113,17 +127,60 @@ export class MobileControls {    constructor(game) {
                 if (this.activeTouches.get(touch.identifier) === 'joystick') {
                     this.resetJoystick();
                     this.activeTouches.delete(touch.identifier);
+                    
+                    // Remove visual feedback
+                    joystickOuter.classList.remove('active');
+                    
+                    console.log('Joystick touch ended');
                     break;
                 }
             }
         });
+        
+        // Touch cancel
+        document.addEventListener('touchcancel', (e) => {
+            for (const touch of e.changedTouches) {
+                if (this.activeTouches.get(touch.identifier) === 'joystick') {
+                    this.resetJoystick();
+                    this.activeTouches.delete(touch.identifier);
+                    joystickOuter.classList.remove('active');
+                    break;
+                }
+            }
+        });
+        
+        // Mouse events for desktop testing
+        joystickOuter.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const rect = joystickOuter.getBoundingClientRect();
+            
+            this.joystickState.active = true;
+            this.joystickState.startX = rect.left + rect.width / 2;
+            this.joystickState.startY = rect.top + rect.height / 2;
+            
+            joystickOuter.classList.add('active');
+            this.updateJoystickPosition(e.clientX, e.clientY);
+            
+            const handleMouseMove = (e) => {
+                this.updateJoystickPosition(e.clientX, e.clientY);
+            };
+            
+            const handleMouseUp = () => {
+                this.resetJoystick();
+                joystickOuter.classList.remove('active');
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        });
     }
-    
-    updateJoystickPosition(clientX, clientY) {
+      updateJoystickPosition(clientX, clientY) {
         const deltaX = clientX - this.joystickState.startX;
         const deltaY = clientY - this.joystickState.startY;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const maxDistance = 30; // Maximum distance from center
+        const maxDistance = 40; // Increased for better control range
         
         // Clamp to circle
         if (distance > maxDistance) {
@@ -138,10 +195,11 @@ export class MobileControls {    constructor(game) {
         this.joystickState.distance = Math.min(distance, maxDistance);
         this.joystickState.angle = Math.atan2(-this.joystickState.deltaY, this.joystickState.deltaX);
         
-        // Update visual position
+        // Update visual position - fix the translation calculation
         const joystickInner = document.getElementById('joystick-inner');
         if (joystickInner) {
-            joystickInner.style.transform = `translate(${this.joystickState.deltaX - 20}px, ${this.joystickState.deltaY - 20}px)`;
+            // Use proper centering with transform origin
+            joystickInner.style.transform = `translate(-50%, -50%) translate(${this.joystickState.deltaX}px, ${this.joystickState.deltaY}px)`;
         }
         
         // Update game input states
@@ -165,35 +223,34 @@ export class MobileControls {    constructor(game) {
         this.game.inputStates.moveBackward = false;
         this.game.inputStates.rotateLeft = false;
         this.game.inputStates.rotateRight = false;
-    }
-    
-    updateMovementFromJoystick() {
-        if (!this.joystickState.active || this.joystickState.distance < 10) {
-            this.game.inputStates.moveForward = false;
-            this.game.inputStates.moveBackward = false;
-            this.game.inputStates.rotateLeft = false;
-            this.game.inputStates.rotateRight = false;
+    }    updateMovementFromJoystick() {
+        // Clear movement states first
+        this.game.inputStates.moveForward = false;
+        this.game.inputStates.moveBackward = false;
+        this.game.inputStates.rotateLeft = false;
+        this.game.inputStates.rotateRight = false;
+        
+        // Check if joystick is active and moved beyond deadzone
+        const deadzone = 5; // Smaller deadzone for better responsiveness
+        if (!this.joystickState.active || this.joystickState.distance < deadzone) {
             return;
         }
         
-        const normalizedDistance = this.joystickState.distance / 30;
-        const angle = this.joystickState.angle;
+        const normalizedDistance = this.joystickState.distance / 40; // Use new max distance
         
-        // Convert angle to movement directions
-        // Forward/backward movement
-        const forwardComponent = Math.cos(angle) * normalizedDistance;
-        const sideComponent = Math.sin(angle) * normalizedDistance;
+        // Use deltaX and deltaY directly instead of angle calculations
+        const normalizedX = this.joystickState.deltaX / 40; // Left/right movement
+        const normalizedY = this.joystickState.deltaY / 40; // Up/down movement
         
-        // Threshold for activation
-        const threshold = 0.3;
+        // Lower threshold for more responsive control
+        const threshold = 0.15;
+          // Forward/backward movement - UP is negative Y (forward), DOWN is positive Y (backward)
+        this.game.inputStates.moveForward = normalizedY < -threshold;
+        this.game.inputStates.moveBackward = normalizedY > threshold;
         
-        // Forward/backward movement
-        this.game.inputStates.moveForward = forwardComponent > threshold;
-        this.game.inputStates.moveBackward = forwardComponent < -threshold;
-        
-        // Rotation (left/right)
-        this.game.inputStates.rotateLeft = sideComponent < -threshold;
-        this.game.inputStates.rotateRight = sideComponent > threshold;
+        // Rotation (left/right) - LEFT is negative X (rotate left), RIGHT is positive X (rotate right)
+        this.game.inputStates.rotateLeft = normalizedX < -threshold;
+        this.game.inputStates.rotateRight = normalizedX > threshold;
     }
     
     setupActionButtons() {
@@ -220,11 +277,16 @@ export class MobileControls {    constructor(game) {
         }
         
         console.log(`Setting up button: ${buttonId} for action: ${actionName}`);
-        
-        // Touch start
+          // Touch start
         button.addEventListener('touchstart', (e) => {
             e.preventDefault();
             console.log(`Touch start on ${buttonId}`);
+            
+            // Play button press sound for all buttons except fire (fire has its own sound)
+            if (this.game.audioManager && actionName !== 'fire') {
+                this.game.audioManager.playSound('enterTank', 0.2);
+            }
+            
             this.setButtonState(actionName, true);
             button.classList.add('active');
         });

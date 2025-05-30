@@ -77,6 +77,13 @@ canvas {
     margin: 30px;
 }
 
+.startupImage {
+    width: 30%;
+    height: auto;
+    max-width: 400px;
+    mix-blend-mode: multiply;
+}
+
 .login-form label {
     display: block;
     color: #00ff41;
@@ -839,6 +846,22 @@ canvas {
         0 0 20px rgba(74, 93, 35, 0.5),
         inset 0 0 10px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+#joystick-outer.active {
+    border-color: #00ff41;
+    box-shadow: 
+        0 0 25px rgba(0, 255, 65, 0.7),
+        inset 0 0 15px rgba(0, 0, 0, 0.3);
+    background: radial-gradient(circle, 
+        rgba(0, 255, 65, 0.2) 0%, 
+        rgba(74, 93, 35, 0.6) 70%, 
+        rgba(74, 93, 35, 0.8) 100%);
 }
 
 #joystick-inner {
@@ -857,7 +880,9 @@ canvas {
         0 0 15px rgba(0, 255, 65, 0.7),
         inset 0 2px 5px rgba(255, 255, 255, 0.3);
     border: 2px solid #00aa22;
-    transition: all 0.1s ease;
+    transition: transform 0.05s ease;
+    pointer-events: none;
+    will-change: transform;
 }
 
 /* Action Buttons */
@@ -889,6 +914,8 @@ canvas {
     font-family: 'Rajdhani', monospace;
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -897,20 +924,22 @@ canvas {
         0 0 15px rgba(74, 93, 35, 0.4),
         inset 0 2px 5px rgba(255, 255, 255, 0.1);
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
-    transition: all 0.15s ease;
+    transition: all 0.1s ease;
     backdrop-filter: blur(3px);
 }
 
-.mobile-btn:active {
+.mobile-btn:active,
+.mobile-btn.active {
     transform: scale(0.95);
     box-shadow: 
         0 2px 4px rgba(0, 0, 0, 0.3),
-        0 0 10px rgba(74, 93, 35, 0.6),
+        0 0 20px rgba(0, 255, 65, 0.8),
         inset 0 2px 5px rgba(0, 0, 0, 0.2);
     background: linear-gradient(135deg, 
-        rgba(74, 93, 35, 0.9) 0%, 
-        rgba(45, 62, 35, 0.9) 50%, 
+        rgba(0, 255, 65, 0.3) 0%, 
+        rgba(74, 93, 35, 0.9) 50%, 
         rgba(35, 45, 25, 0.9) 100%);
+    border-color: #00ff41;
 }
 
 .fire-btn {

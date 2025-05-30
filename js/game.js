@@ -55,11 +55,12 @@ window.forceMobileControls = function() {
 };
 
 export class Game {
-    constructor(scene, camera, renderer, ui) {
+    constructor(scene, camera, renderer, ui, audioManager) {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
         this.ui = ui;
+        this.audioManager = audioManager;
 
         this.playerTank = null;
         this.enemyTanks = [];
@@ -93,9 +94,14 @@ export class Game {
         
         // Initialize mobile controls
         this.mobileControls = new MobileControls(this);
-        
-        this.setupInputListeners();
-        this.ui.endTurnButton.addEventListener('click', () => this.endPlayerTurn());
+          this.setupInputListeners();
+        this.ui.endTurnButton.addEventListener('click', () => {
+            // Play button click sound
+            if (this.audioManager) {
+                this.audioManager.playSound('enterTank', 0.4);
+            }
+            this.endPlayerTurn();
+        });
         this.ui.onDifficultyChange = (difficulty) => this.setDifficulty(difficulty);
         this.setupControlsInfo();
     }
@@ -239,9 +245,7 @@ export class Game {
             this.enemyTanks.push(enemy);
             this.scene.add(enemy.mesh);
         }
-    }
-
-    startGame() {
+    }    startGame() {
         this.gameState = 'PLAYER_TURN';
         this.currentPlayerIndex = -1;
         this.activeTank = this.playerTank;
@@ -253,6 +257,12 @@ export class Game {
         this.ui.toggleEndTurnButton(true);
         this.ui.updateActionIndicator("Move / Aim / Fire / Adjust Power");
         this.ui.updatePowerIndicator(this.playerTank.currentPower, this.playerTank.minPower, this.playerTank.maxPower);
+        
+        // Start gameplay background music
+        if (this.audioManager) {
+            this.audioManager.stopAllMusic();
+            this.audioManager.playMusic('gameplayBg', true); // Loop background music
+        }
     }
     
     nextTurn() {
@@ -978,10 +988,14 @@ export class Game {
                 terrainHeight: `${terrainHeightAtImpact.toFixed(2)}`,
                 craterDepth: `${craterDepth.toFixed(1)}`
             });
-            
-            // Create ground impact particles
+              // Create ground impact particles
             this.particleSystem.createSmoke(hitPosition, 0.5);
             this.particleSystem.createMetalDebris(hitPosition, 0.3);
+            
+            // Play ground hit sound effect
+            if (this.audioManager) {
+                this.audioManager.playSound('groundHit');
+            }
             
             const dust = new THREE.Mesh(
                 new THREE.SphereGeometry(1.5, 12, 12),
@@ -1030,14 +1044,17 @@ export class Game {
             requestAnimationFrame(shakeCamera);
         };
         
-        shakeCamera();
-    }
+        shakeCamera();    }
     
     // Building and Tree destruction methods (keeping existing implementation)
     damageBuilding(building, projectile) {
         if (building.userData.isDestroyed) return;
+          building.userData.health -= projectile.damage;
         
-        building.userData.health -= projectile.damage;
+        // Play building hit sound
+        if (this.audioManager) {
+            this.audioManager.playSound('hitBuilding');
+        }
         
         const impact = new THREE.Mesh(
             new THREE.SphereGeometry(1.2, 8, 8),
@@ -1048,8 +1065,11 @@ export class Game {
         setTimeout(() => this.scene.remove(impact), 400);
         
         this.createBuildingDebris(projectile.mesh.position, 5);
-        
-        if (building.userData.health <= 0) {
+          if (building.userData.health <= 0) {
+            // Play building destruction sound
+            if (this.audioManager) {
+                this.audioManager.playSound('hitBuilding');
+            }
             this.destroyBuilding(building);
         }
     }
@@ -1121,12 +1141,15 @@ export class Game {
             setTimeout(() => this.scene.remove(debris), 15000);
         }
     }
-    
-    destroyTree(tree, projectile) {
+      destroyTree(tree, projectile) {
         if (tree.userData.isDestroyed) return;
-        
-        tree.userData.isDestroyed = true;
+          tree.userData.isDestroyed = true;
         tree.userData.health = 0;
+        
+        // Play tree destruction sound
+        if (this.audioManager) {
+            this.audioManager.playSound('hitTree');
+        }
         
         const impactDirection = projectile.velocity.clone().normalize();
         impactDirection.y = 0;
@@ -1345,10 +1368,20 @@ export class Game {
         
         fadeAnimation();
     }
-    
-    gameOver(playerWon) {
+      gameOver(playerWon) {
         if (this.gameState === 'GAME_OVER') return;
         this.gameState = 'GAME_OVER';
+        
+        // Stop gameplay music and play game over music
+        if (this.audioManager) {
+            this.audioManager.stopAllMusic();
+            if (playerWon) {
+                this.audioManager.playSound('enterTank'); // Use enterTank for victory
+            } else {
+                this.audioManager.playSound('explosion'); // Use explosion for defeat
+            }
+        }
+        
         const difficultyText = this.difficultyConfig.name;
         const message = playerWon ? 
             `Victory on ${difficultyText} Difficulty!\nAll Enemies Destroyed!` : 
