@@ -776,12 +776,15 @@ export class Game {
         }
         if (this.inputStates.decreasePower) {
             this.playerTank.adjustPower(-this.playerTank.powerIncrement);
-        }
-        if (this.inputStates.barrelUp) {
-            this.playerTank.elevateBarrel(this.playerTank.barrelElevateSpeed * deltaTime);
+        }        if (this.inputStates.barrelUp) {
+            const angleChange = this.playerTank.barrelElevateSpeed * deltaTime;
+            console.log(`BARREL UP pressed: angleChange = ${(angleChange * 180 / Math.PI).toFixed(3)}°, deltaTime = ${deltaTime.toFixed(4)}`);
+            this.playerTank.elevateBarrel(angleChange);
         }
         if (this.inputStates.barrelDown) {
-            this.playerTank.elevateBarrel(-this.playerTank.barrelElevateSpeed * deltaTime);
+            const angleChange = -this.playerTank.barrelElevateSpeed * deltaTime;
+            console.log(`BARREL DOWN pressed: angleChange = ${(angleChange * 180 / Math.PI).toFixed(3)}°, deltaTime = ${deltaTime.toFixed(4)}`);
+            this.playerTank.elevateBarrel(angleChange);
         }
     }
     
@@ -1310,14 +1313,19 @@ export class Game {
                 case 'KeyE': this.inputStates.turretRight = true; break;
                 case 'Space': if (!this.playerTank.hasFiredThisTurn) this.inputStates.fire = true; break;
                 case 'ArrowUp': this.inputStates.increasePower = true; break;
-                case 'ArrowDown': this.inputStates.decreasePower = true; break;
-                case 'ArrowRight': this.inputStates.barrelUp = true; break;
-                case 'ArrowLeft': this.inputStates.barrelDown = true; break;
+                case 'ArrowDown': this.inputStates.decreasePower = true; break;                case 'ArrowRight': 
+                    console.log('ArrowRight pressed - setting barrelUp = true');
+                    this.inputStates.barrelUp = true; 
+                    break;
+                case 'ArrowLeft': 
+                    console.log('ArrowLeft pressed - setting barrelDown = true');
+                    this.inputStates.barrelDown = true; 
+                    break;
                 case 'KeyH': this.toggleControlsInfo(); break;
             }
         });
-        
-        document.addEventListener('keyup', (event) => {
+          document.addEventListener('keyup', (event) => {
+            if (this.gameState !== 'PLAYER_TURN') return;
             switch(event.code) {
                 case 'KeyW': this.inputStates.moveForward = false; break;
                 case 'KeyS': this.inputStates.moveBackward = false; break;
@@ -1326,9 +1334,14 @@ export class Game {
                 case 'KeyQ': this.inputStates.turretLeft = false; break;
                 case 'KeyE': this.inputStates.turretRight = false; break;
                 case 'ArrowUp': this.inputStates.increasePower = false; break;
-                case 'ArrowDown': this.inputStates.decreasePower = false; break;
-                case 'ArrowRight': this.inputStates.barrelUp = false; break;
-                case 'ArrowLeft': this.inputStates.barrelDown = false; break;
+                case 'ArrowDown': this.inputStates.decreasePower = false; break;                case 'ArrowRight': 
+                    console.log('ArrowRight released - setting barrelUp = false');
+                    this.inputStates.barrelUp = false; 
+                    break;
+                case 'ArrowLeft': 
+                    console.log('ArrowLeft released - setting barrelDown = false');
+                    this.inputStates.barrelDown = false; 
+                    break;
             }
         });
     }

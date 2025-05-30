@@ -83,18 +83,16 @@ export class Tank {
         const turretMesh = new THREE.Mesh(turretGeo, turretMat);
         turretMesh.position.y = 0.5 + 0.4; // On top of body
         turretMesh.castShadow = true;
-        this.turret.add(turretMesh);        // Barrel - FIXED geometry and positioning
-        const barrelGeo = new THREE.CylinderGeometry(0.15, 0.2, 2, 8); // Longer barrel, tapered
+        this.turret.add(turretMesh);        // Barrel - FIXED geometry and positioning  
+        // Use BoxGeometry for clearer barrel orientation - length along Z-axis
+        const barrelGeo = new THREE.BoxGeometry(0.3, 0.3, 2); // Width, Height, Length (forward)
         const barrelMat = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.7, roughness: 0.3 });
         this.barrel = new THREE.Mesh(barrelGeo, barrelMat);
         
         // Create a pivot group for proper barrel rotation
-        this.barrelPivot = new THREE.Group();
-        
-        // CRITICAL FIX: Position the barrel correctly - the pivot point should be at the turret
+        this.barrelPivot = new THREE.Group();        // CRITICAL FIX: Position the barrel correctly - the pivot point should be at the turret
         this.barrel.position.set(0, 0, 1); // Move barrel forward from pivot
-        // FIXED: Use -Math.PI/2 so that elevation angles work correctly (barrel points in -Y when elevation = 0)
-        this.barrel.rotation.x = -Math.PI / 2; // Rotate to point forward along Z-axis with correct elevation behavior
+        // No rotation needed - BoxGeometry naturally extends along Z-axis (forward)
           // Add barrel to pivot, pivot to turret
         this.barrelPivot.add(this.barrel);
         turretMesh.add(this.barrelPivot);
@@ -322,13 +320,26 @@ export class Tank {
             }
             
             this.nameLabel.material.opacity = opacity;
-        }
-    }
+        }    }
       // FIXED elevateBarrel method with debug logging
     elevateBarrel(angleChange) {
         if (this.isDestroyed) return;
+        
+        const oldElevation = this.barrelElevation;
         this.barrelElevation += angleChange;
-        this.barrelElevation = Math.max(this.minBarrelElevation, Math.min(this.maxBarrelElevation, this.barrelElevation));
+        
+        let hitLimit = false;
+        let limitType = '';
+        
+        if (this.barrelElevation < this.minBarrelElevation) {
+            this.barrelElevation = this.minBarrelElevation;
+            hitLimit = true;
+            limitType = 'MIN';
+        } else if (this.barrelElevation > this.maxBarrelElevation) {
+            this.barrelElevation = this.maxBarrelElevation;
+            hitLimit = true;
+            limitType = 'MAX';
+        }
         
         // Apply elevation to the barrel pivot - positive elevation raises barrel up
         if (this.barrelPivotRef) {
@@ -336,7 +347,14 @@ export class Tank {
         }
         
         // Debug logging to verify elevation is being applied correctly
-        if (!this.isPlayer) {
+        if (this.isPlayer) {
+            const msg = `PLAYER barrel elevation: ${(oldElevation * 180 / Math.PI).toFixed(1)}° -> ${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°, angleChange: ${(angleChange * 180 / Math.PI).toFixed(3)}°`;
+            if (hitLimit) {
+                console.log(`${msg} [HIT ${limitType} LIMIT]`);
+            } else {
+                console.log(msg);
+            }
+        } else {
             console.log(`AI ${this.id} barrel elevation: ${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`);
         }
     }
@@ -452,26 +470,39 @@ export class Tank {
 
         // Get the world position of the barrel tip
         const barrelTip = new THREE.Vector3(0, 0.9, 1); // Local position at barrel tip (barrel extends in +Z direction)
-        this.barrel.localToWorld(barrelTip);        // FIXED: Calculate direction using proper barrel pivot rotation
-        // Start with forward direction (Z-axis)
-        const localDirection = new THREE.Vector3(0, 0, 1);
-        
-        // Apply barrel elevation first (CRITICAL FIX: negate the elevation due to barrel's -Math.PI/2 rotation)
-        localDirection.applyAxisAngle(new THREE.Vector3(1, 0, 0), -this.barrelElevation);
-        
-        // Then apply turret rotation (Y-axis)
-        localDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.turret.rotation.y);
-        
-        // Finally apply tank body rotation (Y-axis)
-        localDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.mesh.rotation.y);
+        this.barrel.localToWorld(barrelTip);
+
+        // CRITICAL FIX: The issue is that we need to understand the coordinate system properly
+        // The barrel cylinder by default points along Y-axis (0, 1, 0)
+        // With rotation.x = -Math.PI/2, it gets rotated to point along +Z axis
+        // So the barrel's local "forward" direction is (0, 1, 0) in the barrel's local space
+        // This gets transformed by the barrel's world matrix to account for elevation and turret rotation
+          // Make sure the barrel's world matrix is up to date
+        this.barrel.updateMatrixWorld(true);        // CORRECTED: Since the barrel now uses BoxGeometry without rotation,
+        // its local forward direction is naturally (0, 0, 1) along the Z-axis
+        const localForward = new THREE.Vector3(0, 0, 1);// Transform the local direction to world space using the barrel's world matrix
+        const barrelDirection = localForward.clone();
+        barrelDirection.transformDirection(this.barrel.matrixWorld);
         
         // Normalize the direction
-        localDirection.normalize();
+        barrelDirection.normalize();
+          // Debug: Log the transformation details for both player and AI tanks
+        const debugInfo = {
+            localForward: `(${localForward.x.toFixed(3)}, ${localForward.y.toFixed(3)}, ${localForward.z.toFixed(3)})`,
+            barrelElevation: `${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`,
+            barrelPivotRotation: `${(this.barrelPivotRef.rotation.x * 180 / Math.PI).toFixed(1)}°`,
+            transformedDirection: `(${barrelDirection.x.toFixed(3)}, ${barrelDirection.y.toFixed(3)}, ${barrelDirection.z.toFixed(3)})`
+        };
         
+        if (this.isPlayer) {
+            console.log(`PLAYER DIRECTION DEBUG:`, debugInfo);
+        } else {
+            console.log(`${this.id} DIRECTION DEBUG:`, debugInfo);
+        }
         // Calculate initial speed based on current power
         const powerRatio = (this.currentPower - this.minPower) / (this.maxPower - this.minPower);
         const initialSpeed = this.minProjectileSpeed + powerRatio * (this.maxProjectileSpeed - this.minProjectileSpeed);
-        const initialVelocity = localDirection.clone().multiplyScalar(initialSpeed);
+        const initialVelocity = barrelDirection.clone().multiplyScalar(initialSpeed);
         
         // Log shooting position and details
         const tankPosition = this.mesh.position.clone();
@@ -483,15 +514,14 @@ export class Tank {
         const angle = this.barrelElevation;
         const theoreticalRange = (v0 * v0 * Math.sin(2 * angle)) / g;
         const maxHeight = (v0 * v0 * Math.sin(angle) * Math.sin(angle)) / (2 * g);
-        const timeOfFlight = (2 * v0 * Math.sin(angle)) / g;
-          console.log(`${tankName} SHOOTING:`, {
+        const timeOfFlight = (2 * v0 * Math.sin(angle)) / g;          console.log(`${tankName} SHOOTING:`, {
             tankPosition: `(${tankPosition.x.toFixed(2)}, ${tankPosition.y.toFixed(2)}, ${tankPosition.z.toFixed(2)})`,
             barrelTip: `(${barrelTip.x.toFixed(2)}, ${barrelTip.y.toFixed(2)}, ${barrelTip.z.toFixed(2)})`,
             power: `${this.currentPower}%`,
             elevation: `${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`,
             turretRotation: `${(this.turret.rotation.y * 180 / Math.PI).toFixed(1)}°`,
             tankRotation: `${(this.mesh.rotation.y * 180 / Math.PI).toFixed(1)}°`,
-            direction: `(${localDirection.x.toFixed(3)}, ${localDirection.y.toFixed(3)}, ${localDirection.z.toFixed(3)})`,
+            direction: `(${barrelDirection.x.toFixed(3)}, ${barrelDirection.y.toFixed(3)}, ${barrelDirection.z.toFixed(3)})`,
             velocity: `(${initialVelocity.x.toFixed(1)}, ${initialVelocity.y.toFixed(1)}, ${initialVelocity.z.toFixed(1)})`,
             initialSpeed: `${initialSpeed.toFixed(1)} m/s`,
             theoreticalRange: `${theoreticalRange.toFixed(1)} units`,
