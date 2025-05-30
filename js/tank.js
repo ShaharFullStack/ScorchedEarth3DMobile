@@ -12,7 +12,8 @@ export class Tank {
         this.game = gameInstance; // Reference to the game instance
 
         this.mesh = new THREE.Group();
-        this.turret = new THREE.Group();
+        this.turretGroup = new THREE.Group();
+        this.barrelGroup = new THREE.Group();
         this.barrel = null;
         this.nameLabel = null; // For player name display
         this.previousHealth = 0; // Track health changes
@@ -29,7 +30,7 @@ export class Tank {
         this.turretRotateSpeed = Math.PI; // radians per second (180 degrees/sec)
 
         this.hasFiredThisTurn = false;
-        this.collisionRadius = 1.5; // For simple sphere collision
+        this.collisionRadius = 0.75; // For simple sphere collision - reduced for smaller tanks
         
         // Firing properties
         this.minPower = 5;
@@ -45,11 +46,11 @@ export class Tank {
         this.maxBarrelElevation = Math.PI / 3;   // Approx 60 degrees (up) - increased for better range
         this.barrelElevateSpeed = Math.PI / 6; // Faster elevation adjustment
         
-        this.createMesh(color);
+        this.createAdvancedTank(color);
         this.mesh.position.copy(initialPosition);
         // Adjust initial Y position based on terrain
         if (this.scene.userData.terrain) {
-            this.mesh.position.y = this.scene.userData.terrain.getHeightAt(this.mesh.position.x, this.mesh.position.z) + 0.5; // 0.5 is tank half-height approx.
+            this.mesh.position.y = this.scene.userData.terrain.getHeightAt(this.mesh.position.x, this.mesh.position.z) + 0.25; // 0.25 is smaller tank half-height approx.
         }
         
         // Create name label if this is a player tank
@@ -66,49 +67,287 @@ export class Tank {
                 this.updateHealthBar(this.game.camera);
             }
         }, 100);
-    }
-
-    createMesh(color) {
-        // Body
-        const bodyGeo = new THREE.BoxGeometry(2, 1, 3);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.3, roughness: 0.6 });
-        const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-        bodyMesh.castShadow = true;
-        bodyMesh.receiveShadow = true;
-        this.mesh.add(bodyMesh);
-
-        // Turret
-        const turretGeo = new THREE.BoxGeometry(1.2, 0.8, 1.2); // Smaller than body
-        const turretMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color).offsetHSL(0,0,-0.2) , metalness: 0.4, roughness: 0.5});
-        const turretMesh = new THREE.Mesh(turretGeo, turretMat);
-        turretMesh.position.y = 0.5 + 0.4; // On top of body
-        turretMesh.castShadow = true;
-        this.turret.add(turretMesh);        // Barrel - FIXED geometry and positioning  
-        // Use BoxGeometry for clearer barrel orientation - length along Z-axis
-        const barrelGeo = new THREE.BoxGeometry(0.3, 0.3, 2); // Width, Height, Length (forward)
-        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.7, roughness: 0.3 });
-        this.barrel = new THREE.Mesh(barrelGeo, barrelMat);
+    }    createAdvancedTank(color) {
+        // Create main hull
+        this.createHull(color);
         
-        // Create a pivot group for proper barrel rotation
-        this.barrelPivot = new THREE.Group();        // CRITICAL FIX: Position the barrel correctly - the pivot point should be at the turret
-        this.barrel.position.set(0, 0, 1); // Move barrel forward from pivot
-        // No rotation needed - BoxGeometry naturally extends along Z-axis (forward)
-          // Add barrel to pivot, pivot to turret
-        this.barrelPivot.add(this.barrel);
-        turretMesh.add(this.barrelPivot);
+        // Create track system
+        this.createTracks();
         
-        // Store reference to pivot for elevation control
-        this.barrelPivotRef = this.barrelPivot;
+        // Create turret
+        this.createTurret(color);
         
-        // Apply the initial barrel elevation that was set in constructor
-        if (this.barrelPivotRef) {
-            this.barrelPivotRef.rotation.x = this.barrelElevation;
-        }
+        // Create barrel
+        this.createBarrel();
         
-        this.mesh.add(this.turret);
+        // Create additional details
+        this.createDetails();
+        
+        // Add turret and barrel to main group
+        this.mesh.add(this.turretGroup);
+        this.turretGroup.add(this.barrelGroup);
         
         // Create health bar for all tanks
         this.createHealthBar();
+    }
+      createHull(color) {
+        // Main hull body - smaller, more realistic proportions
+        const hullGeometry = new THREE.BoxGeometry(1.75, 0.6, 3);
+        const hullMaterial = new THREE.MeshStandardMaterial({
+            color: color,
+            metalness: 0.7,
+            roughness: 0.3
+        });
+        
+        const hull = new THREE.Mesh(hullGeometry, hullMaterial);
+        hull.position.y = 0.3;
+        hull.castShadow = true;
+        hull.receiveShadow = true;
+        this.mesh.add(hull);
+        
+        // Hull front slope
+        const frontSlopeGeometry = new THREE.BoxGeometry(1.75, 0.4, 0.75);
+        const frontSlope = new THREE.Mesh(frontSlopeGeometry, hullMaterial);
+        frontSlope.position.set(0, 0.5, 1.625);
+        frontSlope.rotation.x = -Math.PI / 6;
+        frontSlope.castShadow = true;
+        this.mesh.add(frontSlope);
+        
+        // Hull rear slope
+        const rearSlopeGeometry = new THREE.BoxGeometry(1.75, 0.3, 0.5);
+        const rearSlope = new THREE.Mesh(rearSlopeGeometry, hullMaterial);
+        rearSlope.position.set(0, 0.4, -1.5);
+        rearSlope.rotation.x = Math.PI / 8;
+        rearSlope.castShadow = true;
+        this.mesh.add(rearSlope);
+          // Side armor plates
+        for (let side of [-1, 1]) {
+            const sideArmorGeometry = new THREE.BoxGeometry(0.15, 0.5, 2.75);
+            const sideArmor = new THREE.Mesh(sideArmorGeometry, hullMaterial);
+            sideArmor.position.set(side * 0.95, 0.3, 0);
+            sideArmor.castShadow = true;
+            this.mesh.add(sideArmor);
+        }
+    }
+    
+    createTracks() {
+        // Track assemblies on both sides
+        for (let side of [-1, 1]) {
+            const trackGroup = new THREE.Group();
+              // Track base
+            const trackGeometry = new THREE.BoxGeometry(0.4, 0.3, 3.25);
+            const trackMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1a1a1a,
+                metalness: 0.9,
+                roughness: 0.8
+            });
+            
+            const track = new THREE.Mesh(trackGeometry, trackMaterial);
+            track.position.set(side * 1.075, 0.15, 0);
+            track.castShadow = true;
+            trackGroup.add(track);
+            
+            // Road wheels (5 wheels per side - scaled down)
+            for (let i = 0; i < 5; i++) {
+                const wheelGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.15, 12);
+                const wheelMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x333333,
+                    metalness: 0.8,
+                    roughness: 0.2
+                });
+                
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.position.set(side * 1.075, 0.15, -1.2 + i * 0.6);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.castShadow = true;
+                trackGroup.add(wheel);
+                
+                // Wheel details
+                const hubGeometry = new THREE.CylinderGeometry(0.075, 0.075, 0.175, 8);
+                const hubMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x666666,
+                    metalness: 0.9,
+                    roughness: 0.1
+                });
+                
+                const hub = new THREE.Mesh(hubGeometry, hubMaterial);
+                hub.position.copy(wheel.position);
+                hub.rotation.z = Math.PI / 2;
+                trackGroup.add(hub);
+            }
+              // Drive sprocket (front)
+            const sprocketGeometry = new THREE.CylinderGeometry(0.225, 0.225, 0.2, 8);
+            const sprocketMaterial = new THREE.MeshStandardMaterial({
+                color: 0x444444,
+                metalness: 0.8,
+                roughness: 0.3
+            });
+            
+            const sprocket = new THREE.Mesh(sprocketGeometry, sprocketMaterial);
+            sprocket.position.set(side * 1.075, 0.15, 1.6);
+            sprocket.rotation.z = Math.PI / 2;
+            sprocket.castShadow = true;
+            trackGroup.add(sprocket);
+              // Idler wheel (rear)
+            const idler = new THREE.Mesh(sprocketGeometry, sprocketMaterial);
+            idler.position.set(side * 1.075, 0.15, -1.6);
+            idler.rotation.z = Math.PI / 2;
+            idler.castShadow = true;
+            trackGroup.add(idler);
+            
+            this.mesh.add(trackGroup);
+        }
+    }
+      createTurret(color) {
+        // Main turret body
+        const turretGeometry = new THREE.BoxGeometry(1.25, 0.6, 1.25);
+        const turretMaterial = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(color).offsetHSL(0, 0, -0.1),
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        
+        const turret = new THREE.Mesh(turretGeometry, turretMaterial);
+        turret.position.set(0, 0.9, -0.15);
+        turret.castShadow = true;
+        this.turretGroup.add(turret);
+        
+        // Turret front armor
+        const frontArmorGeometry = new THREE.BoxGeometry(1.25, 0.5, 0.4);
+        const frontArmor = new THREE.Mesh(frontArmorGeometry, turretMaterial);
+        frontArmor.position.set(0, 0.9, 0.4);
+        frontArmor.rotation.x = -Math.PI / 12;
+        frontArmor.castShadow = true;
+        this.turretGroup.add(frontArmor);
+        
+        // Turret sides
+        for (let side of [-1, 1]) {
+            const sideArmorGeometry = new THREE.BoxGeometry(0.2, 0.5, 1.1);
+            const sideArmor = new THREE.Mesh(sideArmorGeometry, turretMaterial);
+            sideArmor.position.set(side * 0.725, 0.9, -0.1);
+            sideArmor.castShadow = true;
+            this.turretGroup.add(sideArmor);
+        }
+          // Commander's cupola
+        const cupolaGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.3, 12);
+        const cupola = new THREE.Mesh(cupolaGeometry, turretMaterial);
+        cupola.position.set(-0.4, 1.25, -0.4);
+        cupola.castShadow = true;
+        this.turretGroup.add(cupola);
+        
+        // Position turret group
+        this.turretGroup.position.set(0, 0, 0);
+    }
+    
+    createBarrel() {        // Main gun barrel
+        const barrelGeometry = new THREE.CylinderGeometry(0.06, 0.075, 2.25, 16);
+        const barrelMaterial = new THREE.MeshStandardMaterial({
+            color: 0x2a2a2a,
+            metalness: 0.9,
+            roughness: 0.1
+        });
+        
+        this.barrel = new THREE.Mesh(barrelGeometry, barrelMaterial);
+        this.barrel.position.set(0, 0.9, 1.25);
+        this.barrel.rotation.x = Math.PI / 2;
+        this.barrel.castShadow = true;
+        this.barrelGroup.add(this.barrel);
+        
+        // Barrel muzzle brake
+        const muzzleBrakeGeometry = new THREE.CylinderGeometry(0.09, 0.09, 0.3, 8);
+        const muzzleBrake = new THREE.Mesh(muzzleBrakeGeometry, barrelMaterial);
+        muzzleBrake.position.set(0, 0.9, 2.25);
+        muzzleBrake.rotation.x = Math.PI / 2;
+        muzzleBrake.castShadow = true;
+        this.barrelGroup.add(muzzleBrake);          // Mantlet (gun shield)
+        const mantletGeometry = new THREE.SphereGeometry(0.4, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+        const mantletMaterial = new THREE.MeshStandardMaterial({
+            color: 0x444444, // Use a standard color since color parameter isn't available here
+            metalness: 0.8,
+            roughness: 0.3
+        });
+        
+        const mantlet = new THREE.Mesh(mantletGeometry, mantletMaterial);
+        mantlet.position.set(0, 0.9, 0.6);
+        mantlet.castShadow = true;
+        this.barrelGroup.add(mantlet);
+        
+        // Position barrel group
+        this.barrelGroup.position.set(0, 0, 0);
+          // Apply the initial barrel elevation that was set in constructor
+        this.barrelGroup.rotation.x = -this.barrelElevation;
+    }
+      createDetails() {
+        // Antenna
+        const antennaGeometry = new THREE.CylinderGeometry(0.01, 0.01, 1, 8);
+        const antennaMaterial = new THREE.MeshStandardMaterial({
+            color: 0x444444,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        
+        const antenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
+        antenna.position.set(0.6, 1.75, -0.75);
+        antenna.rotation.z = Math.PI / 8;
+        this.mesh.add(antenna);
+        
+        // External fuel tanks
+        for (let i = 0; i < 2; i++) {
+            const tankGeometry = new THREE.CylinderGeometry(0.125, 0.125, 0.75, 12);
+            const tankMaterial = new THREE.MeshStandardMaterial({
+                color: 0x3a3a3a,
+                metalness: 0.6,
+                roughness: 0.4
+            });
+            
+            const fuelTank = new THREE.Mesh(tankGeometry, tankMaterial);
+            fuelTank.position.set(0.9, 0.6, -1 + i * 0.4);
+            fuelTank.rotation.z = Math.PI / 2;
+            fuelTank.castShadow = true;
+            this.mesh.add(fuelTank);
+        }
+        
+        // Headlights
+        for (let side of [-1, 1]) {
+            const lightGeometry = new THREE.CylinderGeometry(0.075, 0.075, 0.05, 12);
+            const lightMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffcc,
+                emissive: 0x333300,
+                metalness: 0.1,
+                roughness: 0.1
+            });            
+            const headlight = new THREE.Mesh(lightGeometry, lightMaterial);
+            headlight.position.set(side * 0.6, 0.75, 1.9);
+            headlight.rotation.x = Math.PI / 2;
+            this.mesh.add(headlight);
+        }
+        
+        // Tool attachments on hull
+        const toolGeometry = new THREE.BoxGeometry(0.05, 0.05, 0.75);
+        const toolMaterial = new THREE.MeshStandardMaterial({
+            color: 0x8b4513,
+            metalness: 0.1,
+            roughness: 0.8
+        });
+        
+        const tool = new THREE.Mesh(toolGeometry, toolMaterial);
+        tool.position.set(-0.9, 0.65, 0.5);
+        tool.rotation.y = Math.PI / 4;
+        this.mesh.add(tool);
+        
+        // Spare track links
+        for (let i = 0; i < 3; i++) {
+            const linkGeometry = new THREE.BoxGeometry(0.15, 0.05, 0.2);
+            const linkMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1a1a1a,
+                metalness: 0.9,
+                roughness: 0.8
+            });
+            
+            const link = new THREE.Mesh(linkGeometry, linkMaterial);
+            link.position.set(0.8, 0.7, -0.75 + i * 0.25);
+            this.mesh.add(link);
+        }
     }
     
     createHealthBar() {
@@ -320,8 +559,7 @@ export class Tank {
             }
             
             this.nameLabel.material.opacity = opacity;
-        }    }
-      // FIXED elevateBarrel method with debug logging
+        }    }      // FIXED elevateBarrel method with debug logging for new barrel group structure
     elevateBarrel(angleChange) {
         if (this.isDestroyed) return;
         
@@ -340,10 +578,9 @@ export class Tank {
             hitLimit = true;
             limitType = 'MAX';
         }
-        
-        // Apply elevation to the barrel pivot - positive elevation raises barrel up
-        if (this.barrelPivotRef) {
-            this.barrelPivotRef.rotation.x = this.barrelElevation;
+          // Apply elevation to the barrel group - negative elevation raises barrel up (Three.js coordinate system)
+        if (this.barrelGroup) {
+            this.barrelGroup.rotation.x = -this.barrelElevation;
         }
         
         // Debug logging to verify elevation is being applied correctly
@@ -413,7 +650,7 @@ export class Tank {
         
         // Update Y position based on terrain height
         if (this.scene.userData.terrain) {
-            this.mesh.position.y = this.scene.userData.terrain.getHeightAt(this.mesh.position.x, this.mesh.position.z) + 0.5;
+            this.mesh.position.y = this.scene.userData.terrain.getHeightAt(this.mesh.position.x, this.mesh.position.z) + 0.25;
         }
         
         // Reduce fuel consumption
@@ -442,10 +679,9 @@ export class Tank {
     }    rotateTurret(angle) {
         if (this.isDestroyed) return;
         // Turret rotation does not consume fuel (strategic choice)
-        this.turret.rotation.y += angle;
+        this.turretGroup.rotation.y += angle;
     }
-    
-    aimTowards(targetPosition) {
+      aimTowards(targetPosition) {
         if (this.isDestroyed) return;
         
         // Get tank position
@@ -460,33 +696,33 @@ export class Tank {
         const angleToTarget = Math.atan2(direction.x, direction.z);
         
         // Set turret rotation directly to face target
-        this.turret.rotation.y = angleToTarget;
+        this.turretGroup.rotation.y = angleToTarget;
     }    shoot() {
         if (this.isDestroyed || this.hasFiredThisTurn) return;
 
         // Get the world position of the barrel tip
-        const barrelTip = new THREE.Vector3(0, 0.9, 1); // Local position at barrel tip (barrel extends in +Z direction)
+        // Since the barrel is a cylinder rotated 90 degrees on X axis, we need to account for this
+        const barrelTip = new THREE.Vector3(0, 0, 1.125); // Local position at barrel tip in rotated cylinder coordinates (half of 2.25)
         this.barrel.localToWorld(barrelTip);
 
-        // CRITICAL FIX: The issue is that we need to understand the coordinate system properly
-        // The barrel cylinder by default points along Y-axis (0, 1, 0)
-        // With rotation.x = -Math.PI/2, it gets rotated to point along +Z axis
-        // So the barrel's local "forward" direction is (0, 1, 0) in the barrel's local space
-        // This gets transformed by the barrel's world matrix to account for elevation and turret rotation
-          // Make sure the barrel's world matrix is up to date
-        this.barrel.updateMatrixWorld(true);        // CORRECTED: Since the barrel now uses BoxGeometry without rotation,
-        // its local forward direction is naturally (0, 0, 1) along the Z-axis
-        const localForward = new THREE.Vector3(0, 0, 1);// Transform the local direction to world space using the barrel's world matrix
+        // Make sure the barrel's world matrix is up to date
+        this.barrel.updateMatrixWorld(true);
+          // For the rotated cylinder barrel, the forward direction in local space is (0, 1, 0) before rotation
+        // After rotation by 90 degrees around X axis, it becomes (0, 0, 1)
+        const localForward = new THREE.Vector3(0, 1, 0);
+        
+        // Transform the local direction to world space using the barrel's world matrix
         const barrelDirection = localForward.clone();
         barrelDirection.transformDirection(this.barrel.matrixWorld);
         
         // Normalize the direction
         barrelDirection.normalize();
-          // Debug: Log the transformation details for both player and AI tanks
+        
+        // Debug: Log the transformation details for both player and AI tanks
         const debugInfo = {
             localForward: `(${localForward.x.toFixed(3)}, ${localForward.y.toFixed(3)}, ${localForward.z.toFixed(3)})`,
             barrelElevation: `${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`,
-            barrelPivotRotation: `${(this.barrelPivotRef.rotation.x * 180 / Math.PI).toFixed(1)}°`,
+            barrelGroupRotation: `${(this.barrelGroup.rotation.x * 180 / Math.PI).toFixed(1)}°`,
             transformedDirection: `(${barrelDirection.x.toFixed(3)}, ${barrelDirection.y.toFixed(3)}, ${barrelDirection.z.toFixed(3)})`
         };
         
@@ -495,6 +731,7 @@ export class Tank {
         } else {
             console.log(`${this.id} DIRECTION DEBUG:`, debugInfo);
         }
+        
         // Calculate initial speed based on current power
         const powerRatio = (this.currentPower - this.minPower) / (this.maxPower - this.minPower);
         const initialSpeed = this.minProjectileSpeed + powerRatio * (this.maxProjectileSpeed - this.minProjectileSpeed);
@@ -510,12 +747,14 @@ export class Tank {
         const angle = this.barrelElevation;
         const theoreticalRange = (v0 * v0 * Math.sin(2 * angle)) / g;
         const maxHeight = (v0 * v0 * Math.sin(angle) * Math.sin(angle)) / (2 * g);
-        const timeOfFlight = (2 * v0 * Math.sin(angle)) / g;          console.log(`${tankName} SHOOTING:`, {
+        const timeOfFlight = (2 * v0 * Math.sin(angle)) / g;
+        
+        console.log(`${tankName} SHOOTING:`, {
             tankPosition: `(${tankPosition.x.toFixed(2)}, ${tankPosition.y.toFixed(2)}, ${tankPosition.z.toFixed(2)})`,
             barrelTip: `(${barrelTip.x.toFixed(2)}, ${barrelTip.y.toFixed(2)}, ${barrelTip.z.toFixed(2)})`,
             power: `${this.currentPower}%`,
             elevation: `${(this.barrelElevation * 180 / Math.PI).toFixed(1)}°`,
-            turretRotation: `${(this.turret.rotation.y * 180 / Math.PI).toFixed(1)}°`,
+            turretRotation: `${(this.turretGroup.rotation.y * 180 / Math.PI).toFixed(1)}°`,
             tankRotation: `${(this.mesh.rotation.y * 180 / Math.PI).toFixed(1)}°`,
             direction: `(${barrelDirection.x.toFixed(3)}, ${barrelDirection.y.toFixed(3)}, ${barrelDirection.z.toFixed(3)})`,
             velocity: `(${initialVelocity.x.toFixed(1)}, ${initialVelocity.y.toFixed(1)}, ${initialVelocity.z.toFixed(1)})`,
@@ -524,7 +763,8 @@ export class Tank {
             maxHeight: `${maxHeight.toFixed(1)} units`,
             timeOfFlight: `${timeOfFlight.toFixed(2)} seconds`
         });
-          const projectile = new Projectile(
+        
+        const projectile = new Projectile(
             barrelTip,
             initialVelocity,
             this.isPlayer,
