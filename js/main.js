@@ -4,6 +4,7 @@ import { Game } from './game.js';
 import { setupScene } from './sceneSetup.js';
 import { UI } from './ui.js';
 import { AudioManager } from './audioManager.js';
+import { AuthManager } from './auth.js';
 
 class MainApp {    constructor() {
         this.scene = new THREE.Scene();
@@ -16,6 +17,9 @@ class MainApp {    constructor() {
         this.audioManager = new AudioManager();
         this.ui = new UI(this.audioManager);
         this.game = null;
+
+        // Initialize AuthManager with callback for when user authentication state changes
+        this.authManager = new AuthManager((user) => this.onAuthStateChanged(user));
 
         this.init();
     }
@@ -35,13 +39,11 @@ class MainApp {    constructor() {
         
         // Make game instance available globally for debugging
         window.gameInstance = this.game;
-        
-        // Initialize audio on first user interaction
+          // Initialize audio on first user interaction
         this.initializeAudio();
         
-        // Show login screen first instead of difficulty selector
-        this.ui.showLoginScreen();
-          // Set up difficulty selection handler (called after login)
+        // The AuthManager will automatically show the Google login screen
+        // when no user is authenticated. We don't need to call showLoginScreen here.          // Set up difficulty selection handler (called after login)
         this.ui.onDifficultyChange = async (difficulty) => {
             await this.game.startGameInitialization();
             this.activeCameraTarget = this.game.playerTank.mesh;
@@ -51,6 +53,23 @@ class MainApp {    constructor() {
         };
 
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
+    }
+
+    // Handle authentication state changes
+    onAuthStateChanged(user) {
+        if (user) {
+            // User is authenticated (either via Google or as guest)
+            console.log('User authenticated:', user.displayName);
+            
+            // Set the player name in UI
+            this.ui.playerName = user.displayName || 'Player';
+            
+            // Show difficulty selector
+            this.ui.showDifficultySelector();
+        } else {
+            // User is not authenticated - the AuthManager will handle showing login screen
+            console.log('User not authenticated');
+        }
     }
 
     async initializeAudio() {

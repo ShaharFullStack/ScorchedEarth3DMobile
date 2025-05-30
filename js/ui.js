@@ -11,7 +11,8 @@ export class UI {
         
         this.playerName = '';
         
-        this.setupLoginScreen();
+        // Note: We're now using AuthManager for authentication, so we don't show the old login screen
+        // this.setupLoginScreen();
         this.setupDifficultySelector();
     }
     
