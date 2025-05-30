@@ -494,7 +494,7 @@ export class Game {
         
         // Try to solve the ballistics equation
         // For simplicity, use approximation that works well for tank ranges
-        const discriminant = Math.pow(v0, 4) - g * (g * horizontalDistance * horizontalDistance + 2 * heightDiff * v0 * v0);
+        const discriminant = Math.pow(v0, 4) + g * (g * horizontalDistance - g * horizontalDistance + 2 * heightDiff * v0 * v0);
         
         if (discriminant < 0) {
             // Target out of range, use maximum practical angle
