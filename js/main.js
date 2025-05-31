@@ -12,13 +12,11 @@ class MainApp {    constructor() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.clock = new THREE.Clock();
           this.thirdPersonController = null;
-        this.activeCameraTarget = null;
-
-        this.audioManager = new AudioManager();
+        this.activeCameraTarget = null;        this.audioManager = new AudioManager();
         this.ui = new UI(this.audioManager);
         this.game = null;
-
-        // Initialize AuthManager with callback for when user authentication state changes
+        
+        // Initialize authentication system
         this.authManager = new AuthManager((user) => this.onAuthStateChanged(user));
 
         this.init();
@@ -32,18 +30,17 @@ class MainApp {    constructor() {
         document.body.appendChild(this.renderer.domElement);
 
         setupScene(this.scene);
-        
-        // Position camera initially for a good overview of larger map
+          // Position camera initially for a good overview of larger map
         this.camera.position.set(0, 35, 40);
         this.camera.lookAt(0, 0, 0);        this.game = new Game(this.scene, this.camera, this.renderer, this.ui, this.audioManager);
         
         // Make game instance available globally for debugging
         window.gameInstance = this.game;
-          // Initialize audio on first user interaction
+        
+        // Initialize audio on first user interaction
         this.initializeAudio();
         
-        // The AuthManager will automatically show the Google login screen
-        // when no user is authenticated. We don't need to call showLoginScreen here.          // Set up difficulty selection handler (called after login)
+        // Set up difficulty selection handler (called after login)
         this.ui.onDifficultyChange = async (difficulty) => {
             await this.game.startGameInitialization();
             this.activeCameraTarget = this.game.playerTank.mesh;
@@ -54,21 +51,16 @@ class MainApp {    constructor() {
 
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
-
-    // Handle authentication state changes
+    
     onAuthStateChanged(user) {
         if (user) {
-            // User is authenticated (either via Google or as guest)
+            // User is logged in, proceed to difficulty selection
             console.log('User authenticated:', user.displayName);
-            
-            // Set the player name in UI
-            this.ui.playerName = user.displayName || 'Player';
-            
-            // Show difficulty selector
+            this.ui.setPlayerName(user.displayName);
             this.ui.showDifficultySelector();
         } else {
-            // User is not authenticated - the AuthManager will handle showing login screen
-            console.log('User not authenticated');
+            // User logged out, authentication screen will be shown by AuthManager
+            console.log('User logged out');
         }
     }
 

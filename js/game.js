@@ -95,10 +95,10 @@ export class Game {
         // Initialize mobile controls
         this.mobileControls = new MobileControls(this);
           this.setupInputListeners();        this.ui.endTurnButton.addEventListener('click', () => {
-            // Play button click sound
-            if (this.audioManager) {
-                this.audioManager.playSound('enterTank', 0.4);
-            }
+            // // Play button click sound
+            // if (this.audioManager) {
+            //     this.audioManager.playSound('enterTank', 0.4);
+            // }
             this.endPlayerTurn();
         });        // Stop music button event listener
         this.ui.stopMusicButton.addEventListener('click', () => {
@@ -1433,7 +1433,7 @@ export class Game {
             this.audioManager.stopAllContinuousSounds();
             this.audioManager.stopAllMusic();
             if (playerWon) {
-                this.audioManager.playSound('enterTank'); // Use enterTank for victory
+                this.audioManager.playMusic('openingTune'); // Use enterTank for victory
             } else {
                 this.audioManager.playSound('explosion'); // Use explosion for defeat
             }

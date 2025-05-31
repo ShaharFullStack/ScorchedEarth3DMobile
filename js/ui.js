@@ -11,137 +11,14 @@ export class UI {
         
         this.playerName = '';
         
-        // Note: We're now using AuthManager for authentication, so we don't show the old login screen
-        // this.setupLoginScreen();
         this.setupDifficultySelector();
     }
     
-    setupLoginScreen() {
-        // Create login overlay
-        this.loginOverlay = document.createElement('div');
-        this.loginOverlay.id = 'login-overlay';
-        this.loginOverlay.innerHTML = `
-            <div class="login-content">
-                <h1>Scorched Earth</h1>
-                <h1>Return</h1>
-                <img class="startupImage" src="assets/images/tankTrans.png" alt="Scorched Earth Logo" class="logo">
-                <p class="subtitle">Identify yourself, soldier!</p>
-                <div class="login-form">
-                    <label for="player-name">What's your name?</label>
-                    <input type="text" id="player-name" placeholder="Enter your callsign..." maxlength="20" autocomplete="off">
-                </div>
-                <button class="login-btn" id="login-submit">ENTER BATTLEFIELD</button>
-            </div>
-        `;
-        
-        document.body.appendChild(this.loginOverlay);
-        
-        // Get elements
-        this.playerNameInput = document.getElementById('player-name');
-        this.loginSubmitBtn = document.getElementById('login-submit');
-        
-        // Add event listeners
-        this.playerNameInput.addEventListener('input', (e) => {
-            const name = e.target.value.trim();
-            const isValid = name.length >= 2;
-            
-            this.loginSubmitBtn.disabled = !isValid;
-            
-            // Visual feedback
-            if (isValid) {
-                this.loginSubmitBtn.style.opacity = '1';
-                this.loginSubmitBtn.style.cursor = 'pointer';
-                this.loginSubmitBtn.style.backgroundColor = '';
-            } else {
-                this.loginSubmitBtn.style.opacity = '0.6';
-                this.loginSubmitBtn.style.cursor = 'not-allowed';
-                this.loginSubmitBtn.style.backgroundColor = '#666';
-            }
-        });
-        
-        this.playerNameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (this.playerNameInput.value.trim().length >= 2) {
-                    this.onLoginSubmit();
-                }
-            }
-        });
-          this.loginSubmitBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Login button clicked');
-            
-            // Play button click sound
-            if (this.audioManager) {
-                this.audioManager.playSound('enterTank', 0.4);
-            }
-            
-            if (this.playerNameInput.value.trim().length >= 2) {
-                this.onLoginSubmit();
-            } else {
-                // Show error feedback
-                this.playerNameInput.style.borderColor = '#ff4444';
-                this.playerNameInput.focus();
-                setTimeout(() => {
-                    this.playerNameInput.style.borderColor = '#4a5d23';
-                }, 1000);
-            }
-        });
-        
-        // Set initial button state
-        this.loginSubmitBtn.disabled = true;
-        this.loginSubmitBtn.style.opacity = '0.6';
-        this.loginSubmitBtn.style.cursor = 'not-allowed';
-        this.loginSubmitBtn.style.backgroundColor = '#666';
-        
-        // Auto-focus the input after a short delay
-        setTimeout(() => {
-            if (this.playerNameInput) {
-                this.playerNameInput.focus();
-            }
-        }, 500);
+    setPlayerName(name) {
+        this.playerName = name;
     }
-    
-    onLoginSubmit() {
-        const name = this.playerNameInput.value.trim();
-        console.log('Attempting login with name:', name);
-        
-        if (name.length >= 2) {
-            this.playerName = name;
-            console.log('Player name set to:', this.playerName);
-            
-            // Add exit animation
-            this.loginOverlay.style.transform = 'scale(0.95)';
-            this.loginOverlay.style.opacity = '0';
-            this.loginOverlay.style.transition = 'all 0.5s ease';
-            
-            setTimeout(() => {
-                this.loginOverlay.style.display = 'none';
-                console.log('Showing difficulty selector');
-                this.showDifficultySelector();
-            }, 500);
-        } else {
-            console.log('Name too short:', name);
-            // Show error
-            this.playerNameInput.style.borderColor = '#ff4444';
-            this.playerNameInput.focus();
-            setTimeout(() => {
-                this.playerNameInput.style.borderColor = '#4a5d23';
-            }, 1000);
-        }
-    }
-    
-    getPlayerName() {
+      getPlayerName() {
         return this.playerName;
-    }
-    
-    showLoginScreen() {
-        this.loginOverlay.style.display = 'flex';
-        this.loginOverlay.style.transform = 'scale(1)';
-        this.loginOverlay.style.opacity = '1';
-        setTimeout(() => {
-            this.playerNameInput.focus();
-        }, 100);
     }
     
     setupDifficultySelector() {

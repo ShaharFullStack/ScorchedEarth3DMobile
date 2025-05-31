@@ -388,6 +388,16 @@ export class AuthManager {
         action: () => this.showStats() 
       },
       { 
+        text: 'Tank Shop', 
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci1zaG9wcGluZy1jYXJ0Ij48Y2lyY2xlIGN4PSI5IiBjeT0iMjEiIHI9IjEiPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjEiIHI9IjEiPjwvY2lyY2xlPjxwYXRoIGQ9Im0xIDEgNiAxNiAxIDMuNWExIDEgMCAwIDAgMSAxaDEyLjI2M2ExIDEgMCAwIDAgLjk4Ny0uODM2bDEuNzM3LTkuNzU5YTEgMSAwIDAgMC0uOTg3LTEuMTY0SDZ2MGEyIDIgMCAwIDAtMi0ySDEiPjwvcGF0aD48L3N2Zz4=',
+        action: () => this.showShop() 
+      },
+      { 
+        text: 'Multiplayer', 
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci11c2VycyI+PHBhdGggZD0iTTE3IDIxdi0yYTQgNCAwIDAgMC00LTRIOWE0IDQgMCAwIDAtNCA0djIiPjwvcGF0aD48Y2lyY2xlIGN4PSI5IiBjeT0iNyIgcj0iNCI+PC9jaXJjbGU+PHBhdGggZD0ibTIyIDIxdi0yYTQgNCAwIDAgMC0zLTMuODciPjwvcGF0aD48cGF0aCBkPSJtMTYgMy4xM2E0IDQgMCAwIDEgMCA3Ljc1Ij48L3BhdGg+PC9zdmc+',
+        action: () => this.showMultiplayer() 
+      },
+      { 
         text: 'Sign Out', 
         icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci1sb2ctb3V0Ij48cGF0aCBkPSJNOSAyMUg1YTIgMiAwIDAgMS0yLTJWNWEyIDIgMCAwIDEgMi0yaDQiPjwvcGF0aD48cG9seWxpbmUgcG9pbnRzPSIxNiAxNyAyMSAxMiAxNiA3Ij48L3BvbHlsaW5lPjxsaW5lIHgxPSIyMSIgeTE9IjEyIiB4Mj0iOSIgeTI9IjEyIj48L2xpbmU+PC9zdmc+',
         action: () => this.signOut(),
@@ -498,6 +508,14 @@ export class AuthManager {
   
   showStats() {
     alert('Stats feature coming soon!');
+  }
+
+  showShop() {
+    alert('Tank Shop feature coming soon!');
+  }
+
+  showMultiplayer() {
+    alert('Multiplayer feature coming soon!');
   }
   
   updateProfileUI(user) {
