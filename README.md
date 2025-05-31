@@ -159,7 +159,7 @@ Destroy all enemy tanks to achieve victory!
 - Fuel management failures
 
 ---
-
+![Tank Game Banner](./assets/images/tankTrans.png)
 ## 🔧 **Development & Customization**
 
 ### 🎨 **Easy to Modify**
